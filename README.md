@@ -38,7 +38,7 @@ A simple RESTful API built with Spring Boot and WebFlux for managing person reco
 1. Clone the repository
    ```
    git clone https://github.com/David-Kamau-Builds/spring-webflux-person-api.git
-   cd spring-webflux-person-api
+   cd (custom-folder-name)spring-webflux-person-api
    ```
 
 2. Build the project
