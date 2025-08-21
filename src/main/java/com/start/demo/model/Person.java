@@ -13,5 +13,7 @@ public record Person(
     @NotBlank(message = "Name is required")
         @Size(max = 100, message = "Name must not exceed 100 characters")
         String name,
-    @Email(message = "Email must be valid") @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid") 
+    @NotBlank(message = "Email is required")
+    @Size(max = 255, message = "Email must not exceed 255 characters")
         String email) {}

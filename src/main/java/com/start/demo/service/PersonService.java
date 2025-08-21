@@ -3,6 +3,7 @@ package com.start.demo.service;
 import com.start.demo.model.Person;
 import com.start.demo.repository.PersonRepository;
 import java.util.UUID;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -10,15 +11,16 @@ import reactor.core.publisher.Mono;
 @Service
 public class PersonService {
   private final PersonRepository personRepository;
+  private final R2dbcEntityTemplate template;
 
-  public PersonService(PersonRepository personRepository) {
+  public PersonService(PersonRepository personRepository, R2dbcEntityTemplate template) {
     this.personRepository = personRepository;
+    this.template = template;
   }
 
   public Mono<Person> addPerson(Person person) {
-    // For new persons, ensure ID is null to trigger INSERT instead of UPDATE
-    Person newPerson = new Person(null, person.name(), person.email());
-    return personRepository.save(newPerson);
+    Person newPerson = new Person(UUID.randomUUID(), person.name(), person.email());
+    return template.insert(newPerson);
   }
 
   public Flux<Person> getAllPeople() {
@@ -29,21 +31,12 @@ public class PersonService {
     return personRepository.findById(id);
   }
 
-  public Mono<Boolean> deletePerson(UUID id) {
-    return personRepository
-        .existsById(id)
-        .flatMap(
-            exists -> {
-              if (exists) {
-                return personRepository.deleteById(id).then(Mono.just(true));
-              }
-              return Mono.just(false);
-            });
+  public Mono<Person> updatePerson(UUID id, Person person) {
+    Person updatedPerson = new Person(id, person.name(), person.email());
+    return personRepository.save(updatedPerson);
   }
 
-  public Mono<Person> updatePerson(UUID id, Person person) {
-    return personRepository
-        .existsById(id)
-        .flatMap(exists -> exists ? personRepository.save(person) : Mono.empty());
+  public Mono<Boolean> deletePerson(UUID id) {
+    return personRepository.deleteById(id).thenReturn(true);
   }
 }
