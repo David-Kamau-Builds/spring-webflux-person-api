@@ -7,34 +7,60 @@ on:
     branches: [main]
 
 jobs:
+  # Stage 1: Fast checks (run in parallel)
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-
       - name: Make mvnw executable
         run: chmod +x ./mvnw
-
       - name: Run tests
         run: ./mvnw clean test
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check code formatting
+        run: |
+          find src -name "*.java" -exec grep -l "  " {} \; | wc -l
+          echo "Java files checked for formatting"
+      - name: Check for TODO/FIXME comments
+        run: |
+          grep -r "TODO\|FIXME\|XXX" src/ --include="*.java" || echo "No TODO/FIXME found"
+
+  # Stage 2: Build and package (after tests pass)
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
       - name: Build application
         run: ./mvnw clean package -DskipTests
-
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
@@ -42,9 +68,22 @@ jobs:
           path: target/*.jar
           retention-days: 7
 
-      - name: Check dependencies for vulnerabilities
-        run: ./mvnw dependency:tree
-
+  # Stage 3: Integration tests (after build)
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: person-api-jar
+          path: target/
       - name: Test application startup
         run: |
           java -jar target/*.jar &
@@ -52,115 +91,71 @@ jobs:
           sleep 10
           curl -f http://localhost:8080/api/v1/persons || exit 1
           kill $APP_PID
-
       - name: Run API tests
         run: |
           java -jar target/*.jar &
           APP_PID=$!
           sleep 10
-          
-          # Test POST
           PERSON_ID=$(curl -s -X POST http://localhost:8080/api/v1/persons \
             -H "Content-Type: application/json" \
             -d '{"name":"Test User","email":"test@example.com"}' | \
             grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-          
-          # Test GET all
           curl -f http://localhost:8080/api/v1/persons
-          
-          # Test GET by ID
           curl -f http://localhost:8080/api/v1/persons/$PERSON_ID
-          
-          # Test PUT
           curl -f -X PUT http://localhost:8080/api/v1/persons/$PERSON_ID \
             -H "Content-Type: application/json" \
             -d '{"name":"Updated User","email":"updated@example.com"}'
-          
-          # Test DELETE
           curl -f -X DELETE http://localhost:8080/api/v1/persons/$PERSON_ID
-          
           kill $APP_PID
 
-      - name: Docker build test
-        run: |
-          echo "FROM eclipse-temurin:21-jre-alpine" > Dockerfile
-          echo "COPY target/*.jar app.jar" >> Dockerfile
-          echo "EXPOSE 8080" >> Dockerfile
-          echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> Dockerfile
-          docker build -t person-api:test .
-
+  # Stage 4: Quality and security (run in parallel after integration tests)
   code-quality:
     runs-on: ubuntu-latest
-    needs: test
-    
+    needs: integration-test
     steps:
       - uses: actions/checkout@v4
-      
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-          
       - name: Make mvnw executable
         run: chmod +x ./mvnw
-        
-      - name: Check code formatting
-        run: |
-          # Check if code is properly formatted
-          find src -name "*.java" -exec grep -l "  " {} \; | wc -l
-          echo "Java files checked for formatting"
-          
       - name: Analyze code complexity
         run: |
-          # Count lines of code
           echo "=== Code Statistics ==="
           find src/main/java -name "*.java" | xargs wc -l | tail -1
           echo "=== Method Count ==="
           grep -r "public\|private\|protected" src/main/java --include="*.java" | grep "(" | wc -l
-          
-      - name: Check for TODO/FIXME comments
-        run: |
-          echo "=== TODO/FIXME Comments ==="
-          grep -r "TODO\|FIXME\|XXX" src/ --include="*.java" || echo "No TODO/FIXME found"
-          
+      - name: Check dependencies
+        run: ./mvnw dependency:analyze
       - name: Validate documentation
         run: |
-          echo "=== Documentation Check ==="
           [ -f README.md ] && echo "✓ README.md exists" || echo "✗ README.md missing"
           [ -f LICENSE ] && echo "✓ LICENSE exists" || echo "✗ LICENSE missing"
-          
-      - name: Check dependencies
-        run: |
-          echo "=== Dependency Analysis ==="
-          ./mvnw dependency:analyze
-          
+
   security:
     runs-on: ubuntu-latest
-    needs: test
+    needs: integration-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       security-events: write
       actions: read
       contents: read
-    
     steps:
       - uses: actions/checkout@v4
-      
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'table'
-          
       - name: Run Trivy SARIF scan
         uses: aquasecurity/trivy-action@master
         with:
@@ -168,10 +163,85 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
-          
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
         continue-on-error: true
+
+  # Stage 5: Deployment readiness (after all checks pass)
+  docker:
+    runs-on: ubuntu-latest
+    needs: [code-quality, security]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: person-api-jar
+          path: target/
+      - name: Docker build test
+        run: |
+          echo "FROM eclipse-temurin:21-jre-alpine" > Dockerfile
+          echo "COPY target/*.jar app.jar" >> Dockerfile
+          echo "EXPOSE 8080" >> Dockerfile
+          echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> Dockerfile
+          docker build -t person-api:${{ github.sha }} .
+      - name: Test Docker container
+        run: |
+          docker run -d -p 8080:8080 --name test-container person-api:${{ github.sha }}
+          sleep 15
+          curl -f http://localhost:8080/api/v1/persons || exit 1
+          docker stop test-container
+
+  performance:
+    runs-on: ubuntu-latest
+    needs: integration-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: person-api-jar
+          path: target/
+      - name: Install Apache Bench
+        run: sudo apt-get update && sudo apt-get install -y apache2-utils
+      - name: Performance test
+        run: |
+          java -jar target/*.jar &
+          APP_PID=$!
+          sleep 10
+          echo "=== Performance Test Results ==="
+          ab -n 100 -c 10 http://localhost:8080/api/v1/persons
+          kill $APP_PID
+
+  multi-jdk:
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        java: [17, 21]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
+      - name: Test with JDK ${{ matrix.java }}
+        run: ./mvnw clean test
