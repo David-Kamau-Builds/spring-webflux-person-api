@@ -1,42 +1,47 @@
 package com.start.demo.service;
 
-import com.start.demo.dao.PersonDao;
 import com.start.demo.model.Person;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.start.demo.repository.PersonRepository;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
-
 @Service
 public class PersonService {
-    private final PersonDao personDao;
+  private final PersonRepository personRepository;
 
-    @Autowired
-    public PersonService(@Qualifier("fakeDao") PersonDao personDao) {
-        this.personDao = personDao;
-    }
+  public PersonService(PersonRepository personRepository) {
+    this.personRepository = personRepository;
+  }
 
-    public Mono<Person> addPerson(Person person) {
-        return personDao.insertPerson(person);
-    }
+  public Mono<Person> addPerson(Person person) {
+    return personRepository.save(person);
+  }
 
-    public Flux<Person> getAllPeople() {
-        return personDao.selectAllPeople();
-    }
+  public Flux<Person> getAllPeople() {
+    return personRepository.findAll();
+  }
 
-    public Mono<Person> getPersonById(UUID id) {
-        return personDao.selectPersonById(id);
-    }
+  public Mono<Person> getPersonById(UUID id) {
+    return personRepository.findById(id);
+  }
 
-    public Mono<Boolean> deletePerson(UUID id) {
-        return personDao.deletePersonById(id);
-    }
+  public Mono<Boolean> deletePerson(UUID id) {
+    return personRepository
+        .existsById(id)
+        .flatMap(
+            exists -> {
+              if (exists) {
+                return personRepository.deleteById(id).then(Mono.just(true));
+              }
+              return Mono.just(false);
+            });
+  }
 
-    public Mono<Person> updatePerson(UUID id, Person person) {
-        return personDao.updatePersonById(id, person);
-    }
-
+  public Mono<Person> updatePerson(UUID id, Person person) {
+    return personRepository
+        .existsById(id)
+        .flatMap(exists -> exists ? personRepository.save(person) : Mono.empty());
+  }
 }

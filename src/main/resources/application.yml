@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: person-api
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  r2dbc:
+    url: ${DATABASE_URL:r2dbc:h2:mem:///testdb}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+  sql:
+    init:
+      mode: always
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.start.demo: ${LOG_LEVEL:INFO}
+    org.springframework.r2dbc: DEBUG
+    org.springframework.security: WARN
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  r2dbc:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  sql:
+    init:
+      mode: never
+
+server:
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+
+logging:
+  level:
+    com.start.demo: ${LOG_LEVEL:INFO}
+    org.springframework.r2dbc: WARN
+    org.springframework.security: WARN
+    root: WARN

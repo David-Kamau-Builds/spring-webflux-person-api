@@ -34,3 +34,23 @@ build/
 
 ### Project specific ###
 tree.txt
+
+### Environment Variables ###
+.env
+.env.local
+.env.production
+*.env
+!.env.example
+
+### Logs ###
+*.log
+logs/
+
+### Database ###
+*.db
+*.sqlite
+
+### Security ###
+*.pem
+*.key
+secrets/
