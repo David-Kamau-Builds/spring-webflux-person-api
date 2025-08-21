@@ -52,3 +52,60 @@ jobs:
           sleep 10
           curl -f http://localhost:8080/api/v1/persons || exit 1
           kill $APP_PID
+
+      - name: Run API tests
+        run: |
+          java -jar target/*.jar &
+          APP_PID=$!
+          sleep 10
+          
+          # Test POST
+          PERSON_ID=$(curl -s -X POST http://localhost:8080/api/v1/persons \
+            -H "Content-Type: application/json" \
+            -d '{"name":"Test User","email":"test@example.com"}' | \
+            grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+          
+          # Test GET all
+          curl -f http://localhost:8080/api/v1/persons
+          
+          # Test GET by ID
+          curl -f http://localhost:8080/api/v1/persons/$PERSON_ID
+          
+          # Test PUT
+          curl -f -X PUT http://localhost:8080/api/v1/persons/$PERSON_ID \
+            -H "Content-Type: application/json" \
+            -d '{"name":"Updated User","email":"updated@example.com"}'
+          
+          # Test DELETE
+          curl -f -X DELETE http://localhost:8080/api/v1/persons/$PERSON_ID
+          
+          kill $APP_PID
+
+      - name: Docker build test
+        run: |
+          echo "FROM eclipse-temurin:21-jre-alpine" > Dockerfile
+          echo "COPY target/*.jar app.jar" >> Dockerfile
+          echo "EXPOSE 8080" >> Dockerfile
+          echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> Dockerfile
+          docker build -t person-api:test .
+
+  security:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
