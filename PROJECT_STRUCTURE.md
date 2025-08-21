@@ -14,7 +14,6 @@ spring-webflux-person-api/
 │   │   │   ├── api/           # REST Controllers
 │   │   │   │   └── PersonController.java
 │   │   │   ├── config/        # Configuration classes
-│   │   │   │   ├── DatabaseConfig.java
 │   │   │   │   └── SecurityConfig.java
 │   │   │   ├── exception/     # Global exception handling
 │   │   │   │   └── GlobalExceptionHandler.java
@@ -74,8 +73,8 @@ spring-webflux-person-api/
 - Bean validation constraints
 
 ### 5. **Configuration Layer** (`config/`)
-- **DatabaseConfig**: R2DBC configuration
 - **SecurityConfig**: Security settings
+- **DemoApplication**: Main application with R2DBC repositories enabled
 
 ### 6. **Exception Handling** (`exception/`)
 - **GlobalExceptionHandler**: Centralized error handling
