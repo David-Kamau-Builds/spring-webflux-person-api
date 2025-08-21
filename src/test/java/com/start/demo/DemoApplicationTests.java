@@ -19,12 +19,13 @@ class DemoApplicationTests {
 
   @Test
   void shouldCreatePerson() {
-    Person person = new Person(null, "John Doe", "john@example.com");
+    String requestBody = "{\"name\":\"John Doe\",\"email\":\"john@example.com\"}";
 
     webTestClient
         .post()
         .uri("/api/v1/persons")
-        .bodyValue(person)
+        .header("Content-Type", "application/json")
+        .bodyValue(requestBody)
         .exchange()
         .expectStatus()
         .isCreated()
@@ -59,12 +60,13 @@ class DemoApplicationTests {
 
   @Test
   void shouldValidatePersonInput() {
-    Person invalidPerson = new Person(null, "", "invalid-email");
+    String invalidRequestBody = "{\"name\":\"\",\"email\":\"invalid-email\"}";
 
     webTestClient
         .post()
         .uri("/api/v1/persons")
-        .bodyValue(invalidPerson)
+        .header("Content-Type", "application/json")
+        .bodyValue(invalidRequestBody)
         .exchange()
         .expectStatus()
         .isBadRequest()

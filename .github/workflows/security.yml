@@ -2,81 +2,82 @@ name: Security Scan
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM
 
 jobs:
   secret-scan:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: TruffleHog OSS
-      uses: trufflesecurity/trufflehog@main
-      with:
-        path: ./
-        base: main
-        head: HEAD
-        extra_args: --debug --only-verified
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
 
   dependency-scan:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up JDK 24
-      uses: actions/setup-java@v4
-      with:
-        java-version: '24'
-        distribution: 'temurin'
-        
-    - name: Cache Maven packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
-        
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/maven@master
-      continue-on-error: true
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high
-        
-    - name: Upload Snyk report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: snyk-report
-        path: snyk-report.json
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/maven@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+        if: ${{ secrets.SNYK_TOKEN != '' }}
+
+      - name: Upload Snyk report
+        uses: actions/upload-artifact@v4
+        if: always() && secrets.SNYK_TOKEN != ''
+        with:
+          name: snyk-report
+          path: snyk-report.json
 
   docker-scan:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Build Docker image
-      run: docker build -t person-api:scan .
-      
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: 'person-api:scan'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        
-    - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t person-api:scan .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'person-api:scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'

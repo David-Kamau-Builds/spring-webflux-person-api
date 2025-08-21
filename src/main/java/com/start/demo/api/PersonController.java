@@ -27,11 +27,8 @@ public class PersonController {
   @PostMapping
   @Operation(summary = "Create a new person")
   public Mono<ResponseEntity<Map<String, Object>>> addPerson(@Valid @RequestBody Person person) {
-    UUID id = UUID.randomUUID();
-    Person personWithId = new Person(id, person.name(), person.email());
-
     return personService
-        .addPerson(personWithId)
+        .addPerson(person)
         .map(
             savedPerson -> {
               return ResponseEntity.status(HttpStatus.CREATED)

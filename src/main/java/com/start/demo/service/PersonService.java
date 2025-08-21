@@ -16,7 +16,9 @@ public class PersonService {
   }
 
   public Mono<Person> addPerson(Person person) {
-    return personRepository.save(person);
+    // For new persons, ensure ID is null to trigger INSERT instead of UPDATE
+    Person newPerson = new Person(null, person.name(), person.email());
+    return personRepository.save(newPerson);
   }
 
   public Flux<Person> getAllPeople() {

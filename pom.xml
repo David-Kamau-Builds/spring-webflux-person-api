@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>24</java.version>
+		<java.version>21</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -165,6 +165,13 @@
 						<endWithNewline/>
 					</java>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
