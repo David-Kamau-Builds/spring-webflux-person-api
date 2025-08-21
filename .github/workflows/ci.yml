@@ -34,3 +34,21 @@ jobs:
 
       - name: Build application
         run: ./mvnw clean package -DskipTests
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: person-api-jar
+          path: target/*.jar
+          retention-days: 7
+
+      - name: Check dependencies for vulnerabilities
+        run: ./mvnw dependency:tree
+
+      - name: Test application startup
+        run: |
+          java -jar target/*.jar &
+          APP_PID=$!
+          sleep 10
+          curl -f http://localhost:8080/api/v1/persons || exit 1
+          kill $APP_PID
