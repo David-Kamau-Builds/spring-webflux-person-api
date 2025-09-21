@@ -1,7 +1,0 @@
-package com.start.demo.repository;
-
-import com.start.demo.model.Person;
-import java.util.UUID;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-
-public interface PersonRepository extends ReactiveCrudRepository<Person, UUID> {}

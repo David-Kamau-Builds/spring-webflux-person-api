@@ -66,7 +66,7 @@ jobs:
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: person-api-jar
+          name: employee-api-jar
           path: target/*.jar
           retention-days: 7
 
@@ -84,31 +84,31 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: person-api-jar
+          name: employee-api-jar
           path: target/
       - name: Test application startup
         run: |
           java -jar target/*.jar &
           APP_PID=$!
           sleep 10
-          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons || exit 1
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/employees || exit 1
           kill $APP_PID
       - name: Run API tests
         run: |
           java -jar target/*.jar &
           APP_PID=$!
           sleep 10
-          PERSON_ID=$(curl -s -X POST http://localhost:8080/api/v1/persons \
+          EMPLOYEE_ID=$(curl -s -X POST http://localhost:8080/api/v1/employees \
             -u admin:admin123 \
             -H "Content-Type: application/json" \
-            -d '{"name":"Test User","email":"test@example.com"}' | \
+            -d '{"firstName":"Test","lastName":"User","email":"test@example.com","phone":"+1234567890","position":"DEVELOPER","salary":75000.00,"hireDate":"2024-01-15","status":"ACTIVE"}' | \
             grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons
-          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons/$PERSON_ID
-          curl -f -u admin:admin123 -X PUT http://localhost:8080/api/v1/persons/$PERSON_ID \
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/employees
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/employees/$EMPLOYEE_ID
+          curl -f -u admin:admin123 -X PUT http://localhost:8080/api/v1/employees/$EMPLOYEE_ID \
             -H "Content-Type: application/json" \
-            -d '{"name":"Updated User","email":"updated@example.com"}'
-          curl -f -u admin:admin123 -X DELETE http://localhost:8080/api/v1/persons/$PERSON_ID
+            -d '{"firstName":"Updated","lastName":"User","email":"updated@example.com","phone":"+1234567890","position":"SENIOR_DEVELOPER","salary":85000.00,"hireDate":"2024-01-15","status":"ACTIVE"}'
+          curl -f -u admin:admin123 -X DELETE http://localhost:8080/api/v1/employees/$EMPLOYEE_ID
           kill $APP_PID
 
   # Stage 4: Quality and security (run in parallel after integration tests)
@@ -183,7 +183,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: person-api-jar
+          name: employee-api-jar
           path: target/
       - name: Docker build test
         run: |
@@ -191,12 +191,12 @@ jobs:
           echo "COPY target/*.jar app.jar" >> Dockerfile
           echo "EXPOSE 8080" >> Dockerfile
           echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> Dockerfile
-          docker build -t person-api:${{ github.sha }} .
+          docker build -t employee-api:${{ github.sha }} .
       - name: Test Docker container
         run: |
-          docker run -d -p 8080:8080 --name test-container person-api:${{ github.sha }}
+          docker run -d -p 8080:8080 --name test-container employee-api:${{ github.sha }}
           sleep 15
-          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons || exit 1
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/employees || exit 1
           docker stop test-container
 
   dependency-check:
@@ -242,7 +242,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: person-api-jar
+          name: employee-api-jar
           path: target/
       - name: Memory usage test
         run: |
@@ -251,7 +251,7 @@ jobs:
           APP_PID=$!
           sleep 15
           ps -p $APP_PID -o pid,vsz,rss,comm
-          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/employees
           kill $APP_PID
           echo "App runs successfully with 128MB heap"
 
@@ -268,7 +268,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: person-api-jar
+          name: employee-api-jar
           path: target/
       - name: Generate API documentation
         run: |
@@ -276,22 +276,22 @@ jobs:
           APP_PID=$!
           sleep 10
           echo "=== API Endpoints ==="
-          curl -s -u admin:admin123 http://localhost:8080/api/v1/persons | echo "GET /api/v1/persons - OK"
-          echo "POST /api/v1/persons - Create person"
-          echo "GET /api/v1/persons/{id} - Get person by ID"
-          echo "PUT /api/v1/persons/{id} - Update person"
-          echo "DELETE /api/v1/persons/{id} - Delete person"
+          curl -s -u admin:admin123 http://localhost:8080/api/v1/employees | echo "GET /api/v1/employees - OK"
+          echo "POST /api/v1/employees - Create employee"
+          echo "GET /api/v1/employees/{id} - Get employee by ID"
+          echo "PUT /api/v1/employees/{id} - Update employee"
+          echo "DELETE /api/v1/employees/{id} - Delete employee"
           kill $APP_PID
       - name: Create API documentation
         run: |
           echo "# API Documentation" > api-docs.md
           echo "" >> api-docs.md
           echo "## Endpoints" >> api-docs.md
-          echo "- GET /api/v1/persons - Get all persons" >> api-docs.md
-          echo "- POST /api/v1/persons - Create a person" >> api-docs.md
-          echo "- GET /api/v1/persons/{id} - Get person by ID" >> api-docs.md
-          echo "- PUT /api/v1/persons/{id} - Update person" >> api-docs.md
-          echo "- DELETE /api/v1/persons/{id} - Delete person" >> api-docs.md
+          echo "- GET /api/v1/employees - Get all employees" >> api-docs.md
+          echo "- POST /api/v1/employees - Create an employee" >> api-docs.md
+          echo "- GET /api/v1/employees/{id} - Get employee by ID" >> api-docs.md
+          echo "- PUT /api/v1/employees/{id} - Update employee" >> api-docs.md
+          echo "- DELETE /api/v1/employees/{id} - Delete employee" >> api-docs.md
       - name: Upload API docs
         uses: actions/upload-artifact@v4
         with:
@@ -372,7 +372,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: person-api-jar
+          name: employee-api-jar
           path: target/
       - name: Install Apache Bench
         run: sudo apt-get update && sudo apt-get install -y apache2-utils
@@ -382,6 +382,6 @@ jobs:
           APP_PID=$!
           sleep 10
           echo "=== Performance Test Results ==="
-          ab -n 100 -c 10 -A admin:admin123 http://localhost:8080/api/v1/persons
+          ab -n 100 -c 10 -A admin:admin123 http://localhost:8080/api/v1/employees
           kill $APP_PID
 
