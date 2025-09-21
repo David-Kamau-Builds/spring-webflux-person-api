@@ -1,17 +1,48 @@
 spring:
   application:
-    name: person-api
+    name: employee-management-api
   r2dbc:
-    url: r2dbc:h2:mem:///testdb
+    url: r2dbc:h2:mem:///employeedb
     username: sa
     password:
   sql:
     init:
       mode: always
+  security:
+    user:
+      name: admin
+      password: admin123
+      roles: ADMIN
 
 server:
   port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
 
 logging:
   level:
     com.start.demo: INFO
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
