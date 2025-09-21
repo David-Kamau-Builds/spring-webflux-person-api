@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -43,8 +44,8 @@ class EmployeeControllerTest {
                 .expectStatus().isCreated()
                 .expectBody(Employee.class)
                 .value(result -> {
-                    assert result.firstName().equals("John");
-                    assert result.lastName().equals("Doe");
+                    assertThat(result.firstName()).isEqualTo("John");
+                    assertThat(result.lastName()).isEqualTo("Doe");
                 });
     }
 
@@ -72,7 +73,7 @@ class EmployeeControllerTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(EmployeeResponse.class)
-                .value(result -> assert result.firstName().equals("John"));
+                .value(result -> assertThat(result.firstName()).isEqualTo("John"));
     }
 
     private Employee createTestEmployee() {
