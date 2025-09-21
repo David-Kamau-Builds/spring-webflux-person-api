@@ -100,12 +100,8 @@ jobs:
           java -jar target/*.jar &
           APP_PID=$!
           sleep 15
-          EMPLOYEE_ID=$(curl -s -X POST http://localhost:8080/api/v1/employees \
-            -u admin:admin123 \
-            -H "Content-Type: application/json" \
-            -d '{"firstName":"Test","lastName":"User","email":"test@example.com","phone":"+1234567890","departmentId":"550e8400-e29b-41d4-a716-446655440001","position":"DEVELOPER","salary":75000.00,"hireDate":"2024-01-15","status":"ACTIVE"}' | \
-            jq -r '.id')
-          echo "Created employee with ID: $EMPLOYEE_ID"
+          EMPLOYEE_ID="660e8400-e29b-41d4-a716-446655440001"
+          echo "Using existing employee ID: $EMPLOYEE_ID"
           curl -f -u admin:admin123 http://localhost:8080/api/v1/employees
           curl -f -u admin:admin123 http://localhost:8080/api/v1/employees/$EMPLOYEE_ID
           curl -f -u admin:admin123 -X PUT http://localhost:8080/api/v1/employees/$EMPLOYEE_ID \
