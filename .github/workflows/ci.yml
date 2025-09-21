@@ -101,13 +101,13 @@ jobs:
           EMPLOYEE_ID=$(curl -s -X POST http://localhost:8080/api/v1/employees \
             -u admin:admin123 \
             -H "Content-Type: application/json" \
-            -d '{"firstName":"Test","lastName":"User","email":"test@example.com","phone":"+1234567890","position":"DEVELOPER","salary":75000.00,"hireDate":"2024-01-15","status":"ACTIVE"}' | \
+            -d '{"firstName":"Test","lastName":"User","email":"test@example.com","phone":"+1234567890","departmentId":"550e8400-e29b-41d4-a716-446655440001","position":"DEVELOPER","salary":75000.00,"hireDate":"2024-01-15","status":"ACTIVE"}' | \
             grep -o '"id":"[^"]*"' | cut -d'"' -f4)
           curl -f -u admin:admin123 http://localhost:8080/api/v1/employees
           curl -f -u admin:admin123 http://localhost:8080/api/v1/employees/$EMPLOYEE_ID
           curl -f -u admin:admin123 -X PUT http://localhost:8080/api/v1/employees/$EMPLOYEE_ID \
             -H "Content-Type: application/json" \
-            -d '{"firstName":"Updated","lastName":"User","email":"updated@example.com","phone":"+1234567890","position":"SENIOR_DEVELOPER","salary":85000.00,"hireDate":"2024-01-15","status":"ACTIVE"}'
+            -d '{"firstName":"Updated","lastName":"User","email":"updated@example.com","phone":"+1234567890","departmentId":"550e8400-e29b-41d4-a716-446655440001","position":"SENIOR_DEVELOPER","salary":85000.00,"hireDate":"2024-01-15","status":"ACTIVE"}'
           curl -f -u admin:admin123 -X DELETE http://localhost:8080/api/v1/employees/$EMPLOYEE_ID
           kill $APP_PID
 
