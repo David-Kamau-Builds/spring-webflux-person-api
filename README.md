@@ -39,11 +39,11 @@ This system provides:
 - ✅ **Reactive Programming** - Non-blocking I/O with WebFlux
 - ✅ **Database Integration** - R2DBC for reactive database access
 - ✅ **API Documentation** - Interactive Swagger UI
-- ✅ **Security** - JWT authentication with Spring Security
-- ✅ **Monitoring** - Custom metrics with Prometheus integration
-- ✅ **Caching** - In-memory caching for performance
-- ✅ **Rate Limiting** - API protection against abuse
-- ✅ **Audit Logging** - Complete action tracking
+- ✅ **Security** - JWT and Basic authentication with Spring Security
+- ✅ **Custom Metrics** - Employee metrics and monitoring endpoints
+- ✅ **Caching** - In-memory caching service
+- ✅ **Rate Limiting** - Request filtering and protection
+- ✅ **Audit Logging** - Action tracking service
 - ✅ **Health Checks** - Custom database health indicators
 - ✅ **Validation** - Comprehensive input validation
 - ✅ **Error Handling** - Global exception handling
@@ -58,7 +58,7 @@ This system provides:
 | **Database** | Spring Data R2DBC + H2 | Reactive database access |
 | **Security** | Spring Security + JWT | Authentication & authorization |
 | **Documentation** | OpenAPI 3 + Swagger UI | Interactive API documentation |
-| **Monitoring** | Spring Actuator + Prometheus | Health checks and metrics |
+| **Monitoring** | Custom Health & Metrics | Health checks and custom metrics |
 | **Testing** | JUnit 5 + TestContainers | Comprehensive testing suite |
 | **Build** | Maven | Dependency management |
 
@@ -97,6 +97,12 @@ This system provides:
 |--------|----------|-------------|
 | POST | `/api/v1/auth/login` | Login and get JWT token |
 
+### Monitoring
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health` | Application health status |
+| GET | `/api/v1/metrics` | Custom application metrics |
+
 ## 🏃‍♂️ **Quick Start**
 
 ### Prerequisites
@@ -118,7 +124,7 @@ mvn spring-boot:run
 - **API Base URL**: `http://localhost:8080/api/v1`
 - **Swagger UI**: `http://localhost:8080/swagger-ui.html`
 - **Health Check**: `http://localhost:8080/api/v1/health`
-- **Metrics**: Available through custom endpoints
+- **Metrics**: `http://localhost:8080/api/v1/metrics`
 
 ### Authentication
 - **Login**: POST `/api/v1/auth/login` with `{"username":"admin","password":"admin123"}`
@@ -178,14 +184,14 @@ curl "http://localhost:8080/api/v1/employees/department/550e8400-e29b-41d4-a716-
 
 ## 📈 **Performance & Monitoring**
 
-- **Health Checks**: Application, database, and custom health indicators
-- **Custom Metrics**: Employee creation counter, search duration timer
-- **Rate Limiting**: 100 requests per minute per IP
-- **Caching**: 5-minute TTL for department lookups
-- **Audit Logging**: Complete action tracking with timestamps
-- **Prometheus Integration**: Ready for Grafana dashboards
-- **Performance**: 5,000+ req/sec throughput, <20ms response time
-- **Structured Logging**: JSON format for log aggregation
+- **Health Checks**: Custom database health indicators
+- **Custom Metrics**: Employee metrics and application monitoring
+- **Rate Limiting**: Request filtering and protection
+- **Caching**: In-memory caching service for performance
+- **Audit Logging**: Action tracking and monitoring
+- **Security**: JWT and Basic authentication
+- **Reactive Architecture**: Non-blocking I/O for better performance
+- **Structured Logging**: Application event tracking
 
 ## 🧪 **Testing Strategy**
 
@@ -197,16 +203,16 @@ curl "http://localhost:8080/api/v1/employees/department/550e8400-e29b-41d4-a716-
 ## 🚀 **Production Readiness**
 
 ### DevOps Features
-- **Docker Support**: Containerized deployment
-- **CI/CD Pipeline**: GitHub Actions workflow
-- **Environment Profiles**: Dev, staging, production configs
-- **Graceful Shutdown**: Proper resource cleanup
+- **CI/CD Pipeline**: GitHub Actions workflow with comprehensive testing
+- **Security Scanning**: Trivy vulnerability scanning
+- **Automated Testing**: Unit, integration, and API tests
+- **Build Automation**: Maven-based build and packaging
 
 ### Scalability
-- **Reactive Architecture**: Handle thousands of concurrent requests
-- **Database Connection Pooling**: Efficient resource usage
-- **Caching Strategy**: Redis integration ready
-- **Load Balancer Ready**: Stateless design
+- **Reactive Architecture**: Non-blocking I/O with WebFlux
+- **Database Integration**: R2DBC for reactive database access
+- **Caching Strategy**: In-memory caching implementation
+- **Stateless Design**: JWT-based authentication
 
 ## 🎯 **Business Value**
 
