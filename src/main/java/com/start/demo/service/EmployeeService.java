@@ -8,8 +8,7 @@ import com.start.demo.model.EmployeeStatus;
 import com.start.demo.model.Position;
 import com.start.demo.repository.DepartmentRepository;
 import com.start.demo.repository.EmployeeRepository;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
+import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,21 +21,21 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final AuditService auditService;
-    private final Counter employeeCreatedCounter;
-    private final Timer employeeSearchTimer;
+    private final AtomicLong employeeCreatedCounter;
+    private final AtomicLong employeeSearchCounter;
     private final CacheService cacheService;
     
     public EmployeeService(EmployeeRepository employeeRepository, 
                           DepartmentRepository departmentRepository,
                           AuditService auditService,
-                          Counter employeeCreatedCounter,
-                          Timer employeeSearchTimer,
+                          AtomicLong employeeCreatedCounter,
+                          AtomicLong employeeSearchCounter,
                           CacheService cacheService) {
         this.employeeRepository = employeeRepository;
         this.departmentRepository = departmentRepository;
         this.auditService = auditService;
         this.employeeCreatedCounter = employeeCreatedCounter;
-        this.employeeSearchTimer = employeeSearchTimer;
+        this.employeeSearchCounter = employeeSearchCounter;
         this.cacheService = cacheService;
     }
     
@@ -55,7 +54,7 @@ public class EmployeeService {
         );
         return employeeRepository.save(newEmployee)
             .doOnSuccess(saved -> {
-                employeeCreatedCounter.increment();
+                employeeCreatedCounter.incrementAndGet();
                 auditService.logEmployeeCreated(saved.id(), "admin").subscribe();
             });
     }
@@ -91,11 +90,12 @@ public class EmployeeService {
     }
     
     public Flux<EmployeeResponse> searchEmployees(String name) {
-        return Timer.Sample.start()
-            .stop(employeeSearchTimer)
-            .then(employeeRepository.findByNameContaining(name)
-                .flatMap(this::mapToEmployeeResponse)
-                .doOnComplete(() -> auditService.logEmployeeSearch(name, "admin").subscribe()));
+        return employeeRepository.findByNameContaining(name)
+            .flatMap(this::mapToEmployeeResponse)
+            .doOnComplete(() -> {
+                employeeSearchCounter.incrementAndGet();
+                auditService.logEmployeeSearch(name, "admin").subscribe();
+            });
     }
     
     public Flux<EmployeeResponse> getEmployeesByDepartment(UUID departmentId) {

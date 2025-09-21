@@ -20,18 +20,8 @@ server:
     include-message: always
     include-binding-errors: always
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    export:
-      prometheus:
-        enabled: true
+# Custom health endpoint at /api/v1/health
+# Metrics available through custom endpoints
 
 springdoc:
   api-docs:

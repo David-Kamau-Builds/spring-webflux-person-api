@@ -1,25 +1,19 @@
 package com.start.demo.config;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Configuration
 public class MetricsConfig {
     
     @Bean
-    public Counter employeeCreatedCounter(MeterRegistry meterRegistry) {
-        return Counter.builder("employees.created")
-                .description("Number of employees created")
-                .register(meterRegistry);
+    public AtomicLong employeeCreatedCounter() {
+        return new AtomicLong(0);
     }
     
     @Bean
-    public Timer employeeSearchTimer(MeterRegistry meterRegistry) {
-        return Timer.builder("employees.search.duration")
-                .description("Employee search duration")
-                .register(meterRegistry);
+    public AtomicLong employeeSearchCounter() {
+        return new AtomicLong(0);
     }
 }

@@ -1,13 +1,11 @@
 package com.start.demo.health;
 
 import com.start.demo.repository.EmployeeRepository;
-import org.springframework.boot.actuator.health.Health;
-import org.springframework.boot.actuator.health.ReactiveHealthIndicator;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @Component
-public class DatabaseHealthIndicator implements ReactiveHealthIndicator {
+public class DatabaseHealthIndicator {
     
     private final EmployeeRepository employeeRepository;
     
@@ -15,17 +13,9 @@ public class DatabaseHealthIndicator implements ReactiveHealthIndicator {
         this.employeeRepository = employeeRepository;
     }
     
-    @Override
-    public Mono<Health> health() {
+    public Mono<String> checkHealth() {
         return employeeRepository.count()
-                .map(count -> Health.up()
-                        .withDetail("database", "H2")
-                        .withDetail("employeeCount", count)
-                        .withDetail("status", "Connected")
-                        .build())
-                .onErrorReturn(Health.down()
-                        .withDetail("database", "H2")
-                        .withDetail("status", "Connection failed")
-                        .build());
+                .map(count -> "Database healthy - " + count + " employees")
+                .onErrorReturn("Database connection failed");
     }
 }

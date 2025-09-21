@@ -117,8 +117,8 @@ mvn spring-boot:run
 ### Access Points
 - **API Base URL**: `http://localhost:8080/api/v1`
 - **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **Health Check**: `http://localhost:8080/actuator/health`
-- **Metrics**: `http://localhost:8080/actuator/prometheus`
+- **Health Check**: `http://localhost:8080/api/v1/health`
+- **Metrics**: Available through custom endpoints
 
 ### Authentication
 - **Login**: POST `/api/v1/auth/login` with `{"username":"admin","password":"admin123"}`
