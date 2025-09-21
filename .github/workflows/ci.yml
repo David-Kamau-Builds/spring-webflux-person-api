@@ -172,11 +172,11 @@ jobs:
           sarif_file: 'trivy-results.sarif'
         continue-on-error: true
 
-  # Stage 5: Deployment readiness (after all checks pass)
+  # Stage 5: Docker Build and Deploy (only on develop → main merge)
   docker:
     runs-on: ubuntu-latest
     needs: [code-quality, security]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'Merge pull request') && contains(github.event.head_commit.message, 'develop')
     steps:
       - uses: actions/checkout@v4
       - name: Download JAR artifact
@@ -184,16 +184,25 @@ jobs:
         with:
           name: employee-api-jar
           path: target/
-      - name: Docker build test
-        run: |
-          echo "FROM eclipse-temurin:21-jre-alpine" > Dockerfile
-          echo "COPY target/*.jar app.jar" >> Dockerfile
-          echo "EXPOSE 8080" >> Dockerfile
-          echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> Dockerfile
-          docker build -t employee-api:${{ github.sha }} .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/employee-management-api:latest
+            ${{ secrets.DOCKER_USERNAME }}/employee-management-api:${{ github.sha }}
+          platforms: linux/amd64,linux/arm64
       - name: Test Docker container
         run: |
-          docker run -d -p 8080:8080 --name test-container employee-api:${{ github.sha }}
+          docker run -d -p 8080:8080 --name test-container ${{ secrets.DOCKER_USERNAME }}/employee-management-api:latest
           sleep 15
           curl -f -u admin:admin123 http://localhost:8080/api/v1/employees || exit 1
           docker stop test-container
@@ -328,7 +337,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [docker, performance, dependency-check, memory-test, api-docs]
+    needs: [performance, dependency-check, memory-test, api-docs]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
