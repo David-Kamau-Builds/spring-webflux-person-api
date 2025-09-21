@@ -91,7 +91,7 @@ jobs:
           java -jar target/*.jar &
           APP_PID=$!
           sleep 10
-          curl -f http://localhost:8080/api/v1/persons || exit 1
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons || exit 1
           kill $APP_PID
       - name: Run API tests
         run: |
@@ -99,15 +99,16 @@ jobs:
           APP_PID=$!
           sleep 10
           PERSON_ID=$(curl -s -X POST http://localhost:8080/api/v1/persons \
+            -u admin:admin123 \
             -H "Content-Type: application/json" \
             -d '{"name":"Test User","email":"test@example.com"}' | \
             grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-          curl -f http://localhost:8080/api/v1/persons
-          curl -f http://localhost:8080/api/v1/persons/$PERSON_ID
-          curl -f -X PUT http://localhost:8080/api/v1/persons/$PERSON_ID \
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons/$PERSON_ID
+          curl -f -u admin:admin123 -X PUT http://localhost:8080/api/v1/persons/$PERSON_ID \
             -H "Content-Type: application/json" \
             -d '{"name":"Updated User","email":"updated@example.com"}'
-          curl -f -X DELETE http://localhost:8080/api/v1/persons/$PERSON_ID
+          curl -f -u admin:admin123 -X DELETE http://localhost:8080/api/v1/persons/$PERSON_ID
           kill $APP_PID
 
   # Stage 4: Quality and security (run in parallel after integration tests)
@@ -195,7 +196,7 @@ jobs:
         run: |
           docker run -d -p 8080:8080 --name test-container person-api:${{ github.sha }}
           sleep 15
-          curl -f http://localhost:8080/api/v1/persons || exit 1
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons || exit 1
           docker stop test-container
 
   dependency-check:
@@ -250,7 +251,7 @@ jobs:
           APP_PID=$!
           sleep 15
           ps -p $APP_PID -o pid,vsz,rss,comm
-          curl -f http://localhost:8080/api/v1/persons
+          curl -f -u admin:admin123 http://localhost:8080/api/v1/persons
           kill $APP_PID
           echo "App runs successfully with 128MB heap"
 
@@ -275,7 +276,7 @@ jobs:
           APP_PID=$!
           sleep 10
           echo "=== API Endpoints ==="
-          curl -s http://localhost:8080/api/v1/persons | echo "GET /api/v1/persons - OK"
+          curl -s -u admin:admin123 http://localhost:8080/api/v1/persons | echo "GET /api/v1/persons - OK"
           echo "POST /api/v1/persons - Create person"
           echo "GET /api/v1/persons/{id} - Get person by ID"
           echo "PUT /api/v1/persons/{id} - Update person"
@@ -381,6 +382,6 @@ jobs:
           APP_PID=$!
           sleep 10
           echo "=== Performance Test Results ==="
-          ab -n 100 -c 10 http://localhost:8080/api/v1/persons
+          ab -n 100 -c 10 -A admin:admin123 http://localhost:8080/api/v1/persons
           kill $APP_PID
 
