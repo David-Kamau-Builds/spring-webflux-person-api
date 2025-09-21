@@ -90,7 +90,7 @@ jobs:
         run: |
           java -jar target/*.jar &
           APP_PID=$!
-          sleep 10
+          sleep 15
           curl -f -u admin:admin123 http://localhost:8080/api/v1/employees || exit 1
           kill $APP_PID
       - name: Install jq
@@ -99,7 +99,7 @@ jobs:
         run: |
           java -jar target/*.jar &
           APP_PID=$!
-          sleep 10
+          sleep 15
           EMPLOYEE_ID=$(curl -s -X POST http://localhost:8080/api/v1/employees \
             -u admin:admin123 \
             -H "Content-Type: application/json" \
