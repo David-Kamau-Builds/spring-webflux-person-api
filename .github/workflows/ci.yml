@@ -172,7 +172,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
         continue-on-error: true
 
-  # Stage 5: Deployment readiness (after all checks pass)
+  # Stage 5: Docker Build and Deploy
   docker:
     runs-on: ubuntu-latest
     needs: [code-quality, security]
@@ -184,16 +184,25 @@ jobs:
         with:
           name: employee-api-jar
           path: target/
-      - name: Docker build test
-        run: |
-          echo "FROM eclipse-temurin:21-jre-alpine" > Dockerfile
-          echo "COPY target/*.jar app.jar" >> Dockerfile
-          echo "EXPOSE 8080" >> Dockerfile
-          echo "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]" >> Dockerfile
-          docker build -t employee-api:${{ github.sha }} .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/employee-management-api:latest
+            ${{ secrets.DOCKER_USERNAME }}/employee-management-api:${{ github.sha }}
+          platforms: linux/amd64,linux/arm64
       - name: Test Docker container
         run: |
-          docker run -d -p 8080:8080 --name test-container employee-api:${{ github.sha }}
+          docker run -d -p 8080:8080 --name test-container ${{ secrets.DOCKER_USERNAME }}/employee-management-api:latest
           sleep 15
           curl -f -u admin:admin123 http://localhost:8080/api/v1/employees || exit 1
           docker stop test-container
