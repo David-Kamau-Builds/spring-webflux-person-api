@@ -13,16 +13,22 @@ import reactor.core.publisher.Mono;
 public class AuthController {
     
     private final JwtUtil jwtUtil;
-    
-    public AuthController(JwtUtil jwtUtil) {
+    private final String demoUsername;
+    private final String demoPassword;
+
+    public AuthController(JwtUtil jwtUtil,
+                          @org.springframework.beans.factory.annotation.Value("${spring.security.user.name}") String demoUsername,
+                          @org.springframework.beans.factory.annotation.Value("${spring.security.user.password}") String demoPassword) {
         this.jwtUtil = jwtUtil;
+        this.demoUsername = demoUsername;
+        this.demoPassword = demoPassword;
     }
     
     @PostMapping("/login")
     @Operation(summary = "Login", description = "Authenticate and get JWT token")
     public Mono<ResponseEntity<LoginResponse>> login(@RequestBody LoginRequest request) {
         // Simple validation - in production, use proper user service
-        if ("admin".equals(request.username()) && "admin123".equals(request.password())) {
+        if (demoUsername.equals(request.username()) && demoPassword.equals(request.password())) {
             String token = jwtUtil.generateToken(request.username());
             return Mono.just(ResponseEntity.ok(new LoginResponse(token, "Bearer", 86400)));
         }
