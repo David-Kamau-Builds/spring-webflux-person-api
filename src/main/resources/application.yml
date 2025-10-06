@@ -13,6 +13,10 @@ spring:
       name: admin
       password: admin123
       roles: ADMIN
+  jpa:
+    defer-datasource-initialization: false
+  main:
+    lazy-initialization: false
 
 server:
   port: 8080
@@ -48,3 +52,4 @@ jwt:
   secret: ${JWT_SECRET:TXlTdXBlclNlY3JldEtleUZvckVtcGxveWVlTWFuYWdlbWVudFN5c3RlbTIwMjQ=}
   # token expiration in milliseconds (default: 24 hours)
   expiration: ${JWT_EXPIRATION:86400000}
+
