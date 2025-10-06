@@ -48,3 +48,10 @@ jwt:
   secret: ${JWT_SECRET:TXlTdXBlclNlY3JldEtleUZvckVtcGxveWVlTWFuYWdlbWVudFN5c3RlbTIwMjQ=}
   # token expiration in milliseconds (default: 24 hours)
   expiration: ${JWT_EXPIRATION:86400000}
+
+# JVM optimization for faster startup
+spring:
+  jpa:
+    defer-datasource-initialization: false
+  main:
+    lazy-initialization: false
