@@ -2,10 +2,10 @@ package com.start.demo.service;
 
 import com.start.demo.audit.AuditService;
 import com.start.demo.dto.EmployeeResponse;
-import com.start.demo.dto.PagedResponse;
+// ...removed unused import PagedResponse
 import com.start.demo.model.Employee;
 import com.start.demo.model.EmployeeStatus;
-import com.start.demo.model.Position;
+// ...removed unused import Position
 import com.start.demo.repository.DepartmentRepository;
 import com.start.demo.repository.EmployeeRepository;
 import java.util.concurrent.atomic.AtomicLong;
@@ -23,20 +23,17 @@ public class EmployeeService {
     private final AuditService auditService;
     private final AtomicLong employeeCreatedCounter;
     private final AtomicLong employeeSearchCounter;
-    private final CacheService cacheService;
     
     public EmployeeService(EmployeeRepository employeeRepository, 
                           DepartmentRepository departmentRepository,
                           AuditService auditService,
                           AtomicLong employeeCreatedCounter,
-                          AtomicLong employeeSearchCounter,
-                          CacheService cacheService) {
+                          AtomicLong employeeSearchCounter) {
         this.employeeRepository = employeeRepository;
         this.departmentRepository = departmentRepository;
         this.auditService = auditService;
         this.employeeCreatedCounter = employeeCreatedCounter;
         this.employeeSearchCounter = employeeSearchCounter;
-        this.cacheService = cacheService;
     }
     
     public Mono<Employee> createEmployee(Employee employee) {

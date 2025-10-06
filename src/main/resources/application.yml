@@ -17,8 +17,12 @@ spring:
 server:
   port: 8080
   error:
-    include-message: always
-    include-binding-errors: always
+    include-message: on_param
+    include-binding-errors: on_param
+    include-stacktrace: never
+  compression:
+    enabled: true
+    mime-types: application/json,text/plain,text/html
 
 # Custom health endpoint at /api/v1/health
 # Metrics available through custom endpoints
@@ -33,6 +37,14 @@ springdoc:
 logging:
   level:
     com.start.demo: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: WARN
+    org.springframework.web: WARN
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# JWT configuration - override with environment variable JWT_SECRET for production
+jwt:
+  # Base64 encoded secret (32+ bytes for HS256) - CHANGE IN PRODUCTION
+  secret: ${JWT_SECRET:TXlTdXBlclNlY3JldEtleUZvckVtcGxveWVlTWFuYWdlbWVudFN5c3RlbTIwMjQ=}
+  # token expiration in milliseconds (default: 24 hours)
+  expiration: ${JWT_EXPIRATION:86400000}
