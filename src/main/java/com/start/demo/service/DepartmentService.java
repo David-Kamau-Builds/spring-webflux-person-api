@@ -18,7 +18,7 @@ public class DepartmentService {
     
     public Mono<Department> createDepartment(Department department) {
         Department newDepartment = new Department(
-            UUID.randomUUID(),
+            null, // Let the database generate the ID
             department.name(),
             department.description(),
             department.managerId()

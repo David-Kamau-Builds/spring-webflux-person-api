@@ -2,34 +2,48 @@ spring:
   application:
     name: employee-management-api
   r2dbc:
-    url: r2dbc:h2:mem:///employeedb
-    username: sa
-    password:
+    url: ${DB_URL:?DB_URL environment variable is required}
+    username: ${DB_USERNAME:?DB_USERNAME environment variable is required}
+    password: ${DB_PASSWORD:?DB_PASSWORD environment variable is required}
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+      validation-query: SELECT 1
+  flyway:
+    url: ${FLYWAY_URL:?FLYWAY_URL environment variable is required}
+    user: ${DB_USERNAME:?DB_USERNAME environment variable is required}
+    password: ${DB_PASSWORD:?DB_PASSWORD environment variable is required}
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: true
+    validate-on-migrate: false
   sql:
     init:
-      mode: always
+      mode: never
   security:
     user:
-      name: admin
-      password: admin123
+      name: ${ADMIN_USERNAME:?ADMIN_USERNAME environment variable is required}
+      password: ${ADMIN_PASSWORD:?ADMIN_PASSWORD environment variable is required}
       roles: ADMIN
-  jpa:
-    defer-datasource-initialization: false
   main:
     lazy-initialization: false
+    banner-mode: console
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   error:
-    include-message: on_param
-    include-binding-errors: on_param
+    include-message: never
+    include-binding-errors: never
     include-stacktrace: never
+    whitelabel:
+      enabled: false
   compression:
     enabled: true
     mime-types: application/json,text/plain,text/html
-
-# Custom health endpoint at /api/v1/health
-# Metrics available through custom endpoints
+  shutdown: graceful
 
 springdoc:
   api-docs:
@@ -38,18 +52,39 @@ springdoc:
     path: /swagger-ui.html
     operationsSorter: method
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+  health:
+    r2dbc:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
 logging:
   level:
-    com.start.demo: INFO
+    com.start.demo: ${LOG_LEVEL:INFO}
     org.springframework.security: WARN
     org.springframework.web: WARN
+    reactor.netty.http.client: WARN
+    org.springframework.r2dbc: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE:logs/application.log}
+    max-size: 10MB
+    max-history: 30
 
-# JWT configuration - override with environment variable JWT_SECRET for production
 jwt:
-  # Base64 encoded secret (32+ bytes for HS256) - CHANGE IN PRODUCTION
-  secret: ${JWT_SECRET:TXlTdXBlclNlY3JldEtleUZvckVtcGxveWVlTWFuYWdlbWVudFN5c3RlbTIwMjQ=}
-  # token expiration in milliseconds (default: 24 hours)
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 

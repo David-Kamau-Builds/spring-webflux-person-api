@@ -9,13 +9,15 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class RateLimitFilter implements WebFilter {
     
     private final ConcurrentMap<String, RequestCounter> requests = new ConcurrentHashMap<>();
     private final int maxRequests = 100; // per minute
-    private final Duration window = Duration.ofMinutes(1);
+    private static final Duration window = Duration.ofMinutes(1);
     
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -40,16 +42,16 @@ public class RateLimitFilter implements WebFilter {
         RequestCounter counter = requests.computeIfAbsent(clientId, k -> new RequestCounter());
         
         // Clean old entries
-        if (now - counter.windowStart > window.toMillis()) {
-            counter.count = 0;
-            counter.windowStart = now;
+        if (now - counter.windowStart.get() > window.toMillis()) {
+            counter.count.set(0);
+            counter.windowStart.set(now);
         }
         
-        return ++counter.count > maxRequests;
+        return counter.count.incrementAndGet() > maxRequests;
     }
     
     private static class RequestCounter {
-        volatile int count = 0;
-        volatile long windowStart = System.currentTimeMillis();
+        AtomicInteger count = new AtomicInteger(0);
+        AtomicLong windowStart = new AtomicLong(System.currentTimeMillis());
     }
 }

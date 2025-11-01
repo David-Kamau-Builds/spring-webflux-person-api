@@ -1,14 +1,12 @@
 package com.start.demo.model;
 
-public enum Position {
-    INTERN,
-    JUNIOR_DEVELOPER,
-    SENIOR_DEVELOPER,
-    LEAD_DEVELOPER,
-    ARCHITECT,
-    MANAGER,
-    SENIOR_MANAGER,
-    DIRECTOR,
-    VP,
-    CEO
-}
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+import java.util.UUID;
+
+@Table("positions")
+public record Position(
+    @Id UUID id,
+    String name,
+    String description
+) {}

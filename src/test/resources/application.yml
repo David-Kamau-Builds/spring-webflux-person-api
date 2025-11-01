@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: employee-management-api-test
+  security:
+    user:
+      name: ${TEST_USERNAME:testuser}
+      password: ${TEST_PASSWORD:testpassword}
+  r2dbc:
+    url: r2dbc:h2:mem:///testdb?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    pool:
+      enabled: true
+      initial-size: 1
+      max-size: 5
+      validation-query: SELECT 1
+  flyway:
+    enabled: false
+    baseline-on-migrate: true
+    validate-on-migrate: false
+  sql:
+    init:
+      mode: embedded
+
+logging:
+  level:
+    com.start.demo: WARN
+    org.springframework: WARN
+    reactor: WARN
+    org.springframework.r2dbc: WARN
+
+jwt:
+  secret: ${JWT_SECRET:c2VjcmV0IGtleSBmb3IgdGVzdGluZyBwdXJwb3NlcyBvbmx5Cg==}
+  expiration: ${JWT_EXPIRATION:86400000}
