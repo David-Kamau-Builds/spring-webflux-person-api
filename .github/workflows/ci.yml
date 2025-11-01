@@ -112,6 +112,7 @@ jobs:
   sonarqube:
     runs-on: ubuntu-latest
     needs: test
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -139,7 +140,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw clean verify sonar:sonar -Dspring.profiles.active=test
+        run: |
+          ./mvnw clean verify sonar:sonar \
+            -Dspring.profiles.active=test \
+            -Dsonar.projectKey=David-Kamau-Builds_spring-webflux-person-api \
+            -Dsonar.organization=david-kamau-builds \
+            -Dsonar.host.url=https://sonarcloud.io
 
   code-quality:
     runs-on: ubuntu-latest

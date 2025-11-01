@@ -23,6 +23,7 @@
 		<spring-framework.version>6.2.11</spring-framework.version>
 		<sonar.organization>david-kamau-builds</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.projectKey>David-Kamau-Builds_spring-webflux-person-api</sonar.projectKey>
 	</properties>
 	
 	<dependencies>
