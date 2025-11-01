@@ -28,7 +28,7 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x ./mvnw
       - name: Run tests
-        run: ./mvnw clean test
+        run: ./mvnw clean test -Dspring.profiles.active=test
 
   lint:
     runs-on: ubuntu-latest
@@ -89,6 +89,13 @@ jobs:
       - name: Test application startup
         run: |
           set -e
+          export DB_URL=r2dbc:h2:mem:///testdb
+          export DB_USERNAME=sa
+          export DB_PASSWORD=
+          export FLYWAY_URL=jdbc:h2:mem:///testdb
+          export ADMIN_USERNAME=admin
+          export ADMIN_PASSWORD=admin123
+          export JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ==
           java -jar target/*.jar &
           APP_PID=$!
           sleep 15
@@ -107,6 +114,13 @@ jobs:
       - name: Run API tests
         run: |
           set -e
+          export DB_URL=r2dbc:h2:mem:///testdb
+          export DB_USERNAME=sa
+          export DB_PASSWORD=
+          export FLYWAY_URL=jdbc:h2:mem:///testdb
+          export ADMIN_USERNAME=admin
+          export ADMIN_PASSWORD=admin123
+          export JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ==
           java -jar target/*.jar &
           APP_PID=$!
           sleep 15
@@ -277,6 +291,13 @@ jobs:
           path: target/
       - name: Memory usage test
         run: |
+          export DB_URL=r2dbc:h2:mem:///testdb
+          export DB_USERNAME=sa
+          export DB_PASSWORD=
+          export FLYWAY_URL=jdbc:h2:mem:///testdb
+          export ADMIN_USERNAME=admin
+          export ADMIN_PASSWORD=admin123
+          export JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ==
           echo "=== Memory Test ==="
           java -Xmx128m -jar target/*.jar &
           APP_PID=$!
@@ -309,6 +330,13 @@ jobs:
           path: target/
       - name: Generate API documentation
         run: |
+          export DB_URL=r2dbc:h2:mem:///testdb
+          export DB_USERNAME=sa
+          export DB_PASSWORD=
+          export FLYWAY_URL=jdbc:h2:mem:///testdb
+          export ADMIN_USERNAME=admin
+          export ADMIN_PASSWORD=admin123
+          export JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ==
           java -jar target/*.jar &
           APP_PID=$!
           sleep 15
@@ -423,6 +451,13 @@ jobs:
           ab -V || { echo "Apache Bench installation verification failed"; exit 1; }
       - name: Performance test
         run: |
+          export DB_URL=r2dbc:h2:mem:///testdb
+          export DB_USERNAME=sa
+          export DB_PASSWORD=
+          export FLYWAY_URL=jdbc:h2:mem:///testdb
+          export ADMIN_USERNAME=admin
+          export ADMIN_PASSWORD=admin123
+          export JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ==
           java -jar target/*.jar &
           APP_PID=$!
           sleep 15
