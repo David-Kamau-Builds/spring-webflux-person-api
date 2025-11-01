@@ -47,7 +47,7 @@ class EmployeeServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         employeeService = new EmployeeService(
-            employeeRepository, positionRepository, employeeStatusRepository,
+            employeeRepository, employeeStatusRepository,
             auditService, employeeCreatedCounter, employeeSearchCounter
         );
 
