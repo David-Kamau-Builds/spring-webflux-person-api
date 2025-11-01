@@ -114,8 +114,15 @@ jobs:
           java -jar target/*.jar &
           APP_PID=$!
           sleep 15
+          # Test health endpoint first (no auth required)
+          if ! curl -f http://localhost:8080/actuator/health; then
+            echo "Health check failed"
+            kill $APP_PID 2>/dev/null || true
+            exit 1
+          fi
+          # Test authenticated endpoint (may return empty array)
           if ! curl -f -u admin:admin123 http://localhost:8080/api/v1/employees; then
-            echo "Application startup failed"
+            echo "Authentication test failed"
             kill $APP_PID 2>/dev/null || true
             exit 1
           fi
@@ -142,9 +149,11 @@ jobs:
           sleep 15
           echo "Testing API endpoints..."
           FAILED=0
+          # Test health endpoint (no auth)
+          curl -f http://localhost:8080/actuator/health || { echo "Health check failed"; FAILED=1; }
+          # Test authenticated endpoints (may return empty arrays)
           curl -f -u admin:admin123 http://localhost:8080/api/v1/employees || { echo "GET employees failed"; FAILED=1; }
           curl -f -u admin:admin123 http://localhost:8080/api/v1/departments || { echo "GET departments failed"; FAILED=1; }
-          curl -f -u admin:admin123 http://localhost:8080/actuator/health || { echo "Health check failed"; FAILED=1; }
           echo "API tests completed"
           kill $APP_PID 2>/dev/null || true
           if [ $FAILED -eq 1 ]; then exit 1; fi
