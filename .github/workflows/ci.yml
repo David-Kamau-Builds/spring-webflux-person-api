@@ -136,11 +136,13 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Make mvnw executable
         run: chmod +x ./mvnw
-      - name: Build and analyze
+      - name: Run tests with coverage
+        run: ./mvnw clean verify
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw clean verify sonar:sonar -Dsonar.projectKey=David-Kamau-Builds_spring-webflux-person-api
 
   code-quality:
     runs-on: ubuntu-latest
