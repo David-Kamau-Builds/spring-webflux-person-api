@@ -21,6 +21,8 @@
 		<commons-lang3.version>3.18.0</commons-lang3.version>
 		<spring-security.version>6.5.4</spring-security.version>
 		<spring-framework.version>6.2.11</spring-framework.version>
+		<logback.version>1.5.19</logback.version>
+		<postgresql.version>42.7.7</postgresql.version>
 		<sonar.projectKey>spring-webflux-person-api</sonar.projectKey>
 		<sonar.organization>david-kamau-builds-spring-webflux-person-api</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -86,6 +88,16 @@
 		
 		<!-- Security Patches -->
 		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-codec</artifactId>
 			<version>${netty.version}</version>
@@ -116,6 +128,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
+			<version>${postgresql.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 
