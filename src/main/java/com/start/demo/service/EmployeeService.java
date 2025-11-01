@@ -17,20 +17,17 @@ import java.util.concurrent.atomic.AtomicLong;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
-    private final PositionRepository positionRepository; // Added
     private final EmployeeStatusRepository employeeStatusRepository; // Added
     private final AuditService auditService;
     private final AtomicLong employeeCreatedCounter;
     private final AtomicLong employeeSearchCounter;
 
     public EmployeeService(EmployeeRepository employeeRepository,
-                           PositionRepository positionRepository, // Added
                            EmployeeStatusRepository employeeStatusRepository, // Added
                            AuditService auditService,
                            AtomicLong employeeCreatedCounter,
                            AtomicLong employeeSearchCounter) {
         this.employeeRepository = employeeRepository;
-        this.positionRepository = positionRepository;
         this.employeeStatusRepository = employeeStatusRepository;
         this.auditService = auditService;
         this.employeeCreatedCounter = employeeCreatedCounter;

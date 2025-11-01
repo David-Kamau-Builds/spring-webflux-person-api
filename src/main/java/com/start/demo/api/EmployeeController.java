@@ -22,6 +22,8 @@ import java.util.UUID;
 @Tag(name = "Employee Management", description = "APIs for managing employees")
 public class EmployeeController {
 
+    private static final String UNKNOWN = "Unknown";
+
     private final EmployeeService employeeService;
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
@@ -108,13 +110,13 @@ public class EmployeeController {
     private Mono<EmployeeResponse> mapToEmployeeResponse(Employee employee) {
         Mono<String> departmentName = departmentRepository.findById(employee.departmentId())
             .map(d -> d.name())
-            .defaultIfEmpty("Unknown");
+            .defaultIfEmpty(UNKNOWN);
         Mono<String> positionName = positionRepository.findById(employee.positionId())
             .map(p -> p.name())
-            .defaultIfEmpty("Unknown");
+            .defaultIfEmpty(UNKNOWN);
         Mono<String> statusName = employeeStatusRepository.findById(employee.statusId())
             .map(s -> s.name())
-            .defaultIfEmpty("Unknown");
+            .defaultIfEmpty(UNKNOWN);
 
         return Mono.zip(departmentName, positionName, statusName)
             .map(tuple -> new EmployeeResponse(
