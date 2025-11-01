@@ -111,6 +111,7 @@ jobs:
           export ADMIN_PASSWORD=admin123
           export JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ==
           export FLYWAY_ENABLED=false
+          export MANAGEMENT_HEALTH_R2DBC_ENABLED=false
           java -jar target/*.jar &
           APP_PID=$!
           sleep 15
@@ -144,6 +145,7 @@ jobs:
           export ADMIN_PASSWORD=admin123
           export JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ==
           export FLYWAY_ENABLED=false
+          export MANAGEMENT_HEALTH_R2DBC_ENABLED=false
           java -jar target/*.jar &
           APP_PID=$!
           sleep 15
