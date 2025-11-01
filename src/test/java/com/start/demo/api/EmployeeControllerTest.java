@@ -32,8 +32,7 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest(controllers = EmployeeController.class)
 @WithMockUser
-@Import({EmployeeController.class, TestConfig.class})
-@org.springframework.test.context.ActiveProfiles("test")
+@Import(TestConfig.class)
 class EmployeeControllerTest {
 
     @Autowired
