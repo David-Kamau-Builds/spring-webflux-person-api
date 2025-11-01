@@ -8,7 +8,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 @TestConfiguration
 @EnableAutoConfiguration(exclude = {
     R2dbcAutoConfiguration.class,
-    R2dbcDataAutoConfiguration.class
+    R2dbcDataAutoConfiguration.class,
+    org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration.class
 })
 public class TestConfig {
 }
