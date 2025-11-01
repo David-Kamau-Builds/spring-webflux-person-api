@@ -3,6 +3,7 @@
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![WebFlux](https://img.shields.io/badge/WebFlux-Reactive-blue.svg)](https://docs.spring.io/spring-framework/docs/current/reference/html/web-reactive.html)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=spring-webflux-person-api&metric=alert_status&token=890febbd110549a7ce65bd95321225c54223b24b)](https://sonarcloud.io/summary/new_code?id=spring-webflux-person-api)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A **production-ready, enterprise-grade Employee Management System** built with modern reactive programming principles. This system demonstrates advanced Spring Boot capabilities, reactive programming, and real-world HR management solutions.

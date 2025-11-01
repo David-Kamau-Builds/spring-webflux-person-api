@@ -146,7 +146,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=spring-webflux-person-api
-            -Dsonar.organization=david-kamau-builds
+            -Dsonar.organization=david-kamau-builds-spring-webflux-person-api
             -Dsonar.branch.name=${{ github.ref_name }}
 
   code-quality:

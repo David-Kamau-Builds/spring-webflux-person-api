@@ -21,9 +21,9 @@
 		<commons-lang3.version>3.18.0</commons-lang3.version>
 		<spring-security.version>6.5.4</spring-security.version>
 		<spring-framework.version>6.2.11</spring-framework.version>
-		<sonar.organization>david-kamau-builds</sonar.organization>
+		<sonar.projectKey>spring-webflux-person-api</sonar.projectKey>
+		<sonar.organization>david-kamau-builds-spring-webflux-person-api</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-		<sonar.projectKey>David-Kamau-Builds_spring-webflux-person-api</sonar.projectKey>
 	</properties>
 	
 	<dependencies>
