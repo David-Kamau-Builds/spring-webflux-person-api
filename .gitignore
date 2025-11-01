@@ -22,3 +22,4 @@ api_collection.json
 INTERVIEW_PREP.md
 monitoring/
 src/main/resources/application.yml
+.env

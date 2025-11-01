@@ -2,18 +2,19 @@ spring:
   application:
     name: employee-management-api
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/employeedb
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   flyway:
-    url: jdbc:postgresql://localhost:5432/employeedb
-    user: spring-person-db
+    url: jdbc:postgresql://postgres:5432/employeedb
+    user: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   sql:
     init:
       mode: never
   security:
     user:
-      name: admin
+      name: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
       roles: ADMIN
   jpa:

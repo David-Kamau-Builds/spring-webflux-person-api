@@ -1,0 +1,12 @@
+spring:
+  security:
+    user:
+      name: testuser
+      password: testpassword
+  r2dbc:
+    url: r2dbc:h2:mem:///testdb
+  flyway:
+    enabled: false
+
+jwt:
+  secret: c2VjcmV0IGtleSBmb3IgdGVzdGluZyBwdXJwb3NlcyBvbmx5Cg==
