@@ -217,6 +217,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: [code-quality, security]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'Merge pull request') && contains(github.event.head_commit.message, 'develop')
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
       - name: Download JAR artifact
@@ -244,10 +258,15 @@ jobs:
         run: |
           set -e
           docker run -d -p 8080:8080 --name test-container \
+            --network host \
             -e JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ== \
             -e ADMIN_USERNAME=admin \
             -e ADMIN_PASSWORD=admin123 \
             -e FLYWAY_ENABLED=false \
+            -e DB_URL=r2dbc:postgresql://localhost:5432/testdb \
+            -e DB_USERNAME=testuser \
+            -e DB_PASSWORD=testpass \
+            -e FLYWAY_URL=jdbc:postgresql://localhost:5432/testdb \
             ${{ secrets.DOCKER_USERNAME }}/employee-management-api:latest
           sleep 15
           if curl -f -u admin:admin123 http://localhost:8080/api/v1/employees; then
