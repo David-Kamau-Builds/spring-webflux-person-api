@@ -14,8 +14,8 @@ public record EmployeeResponse(
     String email,
     String phone,
     String departmentName,
-    Position position,
+    String positionName,
     BigDecimal salary,
     LocalDate hireDate,
-    EmployeeStatus status
+    String statusName
 ) {}

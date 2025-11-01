@@ -31,8 +31,8 @@ public record Employee(
     @NotNull(message = "Department ID is required")
     UUID departmentId,
     
-    @NotNull(message = "Position is required")
-    Position position,
+    @NotNull(message = "Position ID is required")
+    UUID positionId,
     
     @NotNull(message = "Salary is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Salary must be positive")
@@ -42,8 +42,8 @@ public record Employee(
     @PastOrPresent(message = "Hire date cannot be in the future")
     LocalDate hireDate,
     
-    @NotNull(message = "Status is required")
-    EmployeeStatus status
+    @NotNull(message = "Status ID is required")
+    UUID statusId
 ) {
     public String getFullName() {
         return firstName + " " + lastName;

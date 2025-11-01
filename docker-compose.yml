@@ -1,44 +1,9 @@
-version: '3.8'
-
 services:
-  employee-api:
-    build: .
-    ports:
-      - "8080:8080"
+  postgres:
+    image: postgres:13
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
-
-  prometheus:
-    image: prom/prometheus:latest
+      POSTGRES_DB: employeedb
+      POSTGRES_USER: spring-person-db
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-    depends_on:
-      - employee-api
-
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana-storage:/var/lib/grafana
-    depends_on:
-      - prometheus
-
-volumes:
-  grafana-storage:
+      - "5432:5432"

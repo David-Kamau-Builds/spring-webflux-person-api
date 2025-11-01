@@ -16,3 +16,9 @@ Thumbs.db
 
 # Maven wrapper
 !.mvn/wrapper/maven-wrapper.jar
+
+# Custom additions
+api_collection.json
+INTERVIEW_PREP.md
+monitoring/
+src/main/resources/application.yml
