@@ -1,6 +1,5 @@
 package com.start.demo.api;
 
-import com.start.demo.TestConfig;
 import com.start.demo.dto.EmployeeResponse;
 import com.start.demo.model.Department;
 import com.start.demo.model.Employee;
@@ -9,15 +8,13 @@ import com.start.demo.model.Position;
 import com.start.demo.repository.DepartmentRepository;
 import com.start.demo.repository.EmployeeStatusRepository;
 import com.start.demo.repository.PositionRepository;
-import com.start.demo.security.JwtUtil;
 import com.start.demo.service.EmployeeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,24 +27,25 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@WebFluxTest(controllers = EmployeeController.class)
-@WithMockUser
-@Import(TestConfig.class)
+@ExtendWith(MockitoExtension.class)
 class EmployeeControllerTest {
 
-    @Autowired
     private WebTestClient webTestClient;
 
-    @MockBean
+    @Mock
     private EmployeeService employeeService;
-    @MockBean
+    @Mock
     private DepartmentRepository departmentRepository;
-    @MockBean
+    @Mock
     private PositionRepository positionRepository;
-    @MockBean
+    @Mock
     private EmployeeStatusRepository employeeStatusRepository;
-    @MockBean
-    private JwtUtil jwtUtil;
+
+    @BeforeEach
+    void setUp() {
+        EmployeeController controller = new EmployeeController(employeeService, departmentRepository, positionRepository, employeeStatusRepository);
+        webTestClient = WebTestClient.bindToController(controller).build();
+    }
 
     @Test
     void createEmployee_Success() {
