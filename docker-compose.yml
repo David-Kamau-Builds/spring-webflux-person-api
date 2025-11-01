@@ -1,31 +1,14 @@
 services:
-#  app:
-#    image: employee-management-api
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - postgres
-#    environment:
-#      - DB_URL=r2dbc:postgresql://postgres:5432/employeedb
-#      - DB_USERNAME=spring-person-db
-#      - DB_PASSWORD=${DB_PASSWORD}
-#      - ADMIN_USERNAME=admin
-#      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-#      - JWT_SECRET=${JWT_SECRET}
-#    networks:
-#      - app-network
-
   postgres:
     image: postgres:13
     environment:
       POSTGRES_DB: employeedb
       POSTGRES_USER: spring-person-db
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD environment variable is required}
     ports:
       - "5432:5432"
     networks:
       - app-network
-      - 
 
 networks:
   app-network:
