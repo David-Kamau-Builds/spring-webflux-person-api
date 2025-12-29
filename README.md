@@ -1,4 +1,4 @@
-# 🏢 Employee Management System
+# Employee Management System
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -8,7 +8,7 @@
 
 A **production-ready, enterprise-grade Employee Management System** built with modern reactive programming principles. This system demonstrates advanced Spring Boot capabilities, reactive programming, and real-world HR management solutions.
 
-## 🎯 **Problem Statement**
+## **Problem Statement**
 
 Modern organizations struggle with:
 - **Inefficient employee data management** across departments
@@ -16,7 +16,7 @@ Modern organizations struggle with:
 - **Poor scalability** of traditional blocking I/O systems
 - **Complex integration** requirements with existing HR systems
 
-## 💡 **Solution**
+## **Solution**
 
 This system provides:
 - **Reactive, non-blocking architecture** for high performance
@@ -27,27 +27,27 @@ This system provides:
 - **Enterprise security** with JWT authentication
 - **Production monitoring** with health checks and metrics
 
-## 🚀 **Key Features**
+## **Key Features**
 
 ### Core Functionality
-- ✅ **Employee Management** - CRUD operations with validation
-- ✅ **Department Organization** - Hierarchical department structure
-- ✅ **Advanced Search** - Name, department, salary range filtering
-- ✅ **Analytics Dashboard** - Employee count, average salary by department
-- ✅ **Status Tracking** - Active, inactive, on-leave, terminated employees
+- **Employee Management** - CRUD operations with validation
+- **Department Organization** - Hierarchical department structure
+- **Advanced Search** - Name, department, salary range filtering
+- **Analytics Dashboard** - Employee count, average salary by department
+- **Status Tracking** - Active, inactive, on-leave, terminated employees
 
 ### Technical Excellence
-- ✅ **Reactive Programming** - Non-blocking I/O with WebFlux
-- ✅ **Database Integration** - R2DBC for reactive database access
-- ✅ **API Documentation** - Interactive Swagger UI
-- ✅ **Security** - JWT and Basic authentication with Spring Security
-- ✅ **Custom Metrics** - Employee metrics and monitoring endpoints
-- ✅ **Caching** - In-memory caching service
-- ✅ **Rate Limiting** - Request filtering and protection
-- ✅ **Audit Logging** - Action tracking service
-- ✅ **Health Checks** - Custom database health indicators
-- ✅ **Validation** - Comprehensive input validation
-- ✅ **Error Handling** - Global exception handling
+- **Reactive Programming** - Non-blocking I/O with WebFlux
+- **Database Integration** - R2DBC for reactive database access
+- **API Documentation** - Interactive Swagger UI
+- **Security** - JWT and Basic authentication with Spring Security
+- **Custom Metrics** - Employee metrics and monitoring endpoints
+- **Caching** - In-memory caching service
+- **Rate Limiting** - Request filtering and protection
+- **Audit Logging** - Action tracking service
+- **Health Checks** - Custom database health indicators
+- **Validation** - Comprehensive input validation
+- **Error Handling** - Global exception handling
 
 ## 🛠 **Technology Stack**
 
@@ -63,7 +63,7 @@ This system provides:
 | **Testing** | JUnit 5 + TestContainers | Comprehensive testing suite |
 | **Build** | Maven | Dependency management |
 
-## 📊 **API Endpoints**
+## **API Endpoints**
 
 ### Employee Management
 | Method | Endpoint | Description |
@@ -104,7 +104,7 @@ This system provides:
 | GET | `/api/v1/health` | Application health status |
 | GET | `/api/v1/metrics` | Custom application metrics |
 
-## 🏃‍♂️ **Quick Start**
+## **Quick Start**
 
 ### Prerequisites
 - Java 21+
@@ -132,7 +132,7 @@ mvn spring-boot:run
 - **JWT Token**: Use returned token in `Authorization: Bearer <token>` header
 - **Basic Auth**: Alternative with `admin:admin123` for testing
 
-## 📝 **Sample API Usage**
+## **Sample API Usage**
 
 ### Create Employee
 ```bash
@@ -164,7 +164,7 @@ curl "http://localhost:8080/api/v1/employees/department/550e8400-e29b-41d4-a716-
   -u admin:admin123
 ```
 
-## 🏗 **Architecture Highlights**
+## **Architecture Highlights**
 
 ### Reactive Programming
 - **Non-blocking I/O** for better resource utilization
@@ -183,7 +183,7 @@ curl "http://localhost:8080/api/v1/employees/department/550e8400-e29b-41d4-a716-
 - **Input validation** at all layers
 - **CORS configuration** for web clients
 
-## 📈 **Performance & Monitoring**
+## **Performance & Monitoring**
 
 - **Health Checks**: Custom database health indicators
 - **Custom Metrics**: Employee metrics and application monitoring
@@ -194,14 +194,14 @@ curl "http://localhost:8080/api/v1/employees/department/550e8400-e29b-41d4-a716-
 - **Reactive Architecture**: Non-blocking I/O for better performance
 - **Structured Logging**: Application event tracking
 
-## 🧪 **Testing Strategy**
+## **Testing Strategy**
 
 - **Unit Tests**: Service layer with mocked dependencies
 - **Integration Tests**: Full application context testing
 - **WebFlux Testing**: Reactive endpoint testing
 - **TestContainers**: Database integration testing
 
-## 🚀 **Production Readiness**
+## **Production Readiness**
 
 ### DevOps Features
 - **CI/CD Pipeline**: GitHub Actions workflow with comprehensive testing
@@ -215,7 +215,7 @@ curl "http://localhost:8080/api/v1/employees/department/550e8400-e29b-41d4-a716-
 - **Caching Strategy**: In-memory caching implementation
 - **Stateless Design**: JWT-based authentication
 
-## 🎯 **Business Value**
+## **Business Value**
 
 This project demonstrates:
 - **Modern Java Development** - Latest language features and frameworks
@@ -225,18 +225,3 @@ This project demonstrates:
 - **Production Monitoring** - Custom metrics, health checks, alerting
 - **Real-world Problem Solving** - Addresses actual HR management needs
 - **Technical Leadership** - Advanced patterns and best practices
-
-## 📚 **Learning Outcomes**
-
-By building this system, you'll master:
-- Reactive programming with Spring WebFlux
-- Modern Spring Boot application development
-- RESTful API design and documentation
-- Database design and R2DBC integration
-- Security implementation with JWT
-- Production monitoring and observability
-- Testing strategies for reactive applications
-
----
-
-**Perfect for showcasing in job interviews** - This project demonstrates enterprise-level development skills, modern technology adoption, and real-world problem-solving capabilities that employers value.
