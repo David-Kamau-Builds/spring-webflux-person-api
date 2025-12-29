@@ -257,15 +257,15 @@ jobs:
       - name: Test Docker container
         run: |
           set -e
-          docker run -d -p 8080:8080 --name test-container \
+          docker run -d --network host --name test-container \
             -e JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ== \
             -e ADMIN_USERNAME=admin \
             -e ADMIN_PASSWORD=admin123 \
-            -e FLYWAY_ENABLED=false \
-            -e DB_URL=r2dbc:postgresql://postgres:5432/testdb \
+            -e FLYWAY_ENABLED=true \
+            -e DB_URL=r2dbc:postgresql://localhost:5432/testdb \
             -e DB_USERNAME=testuser \
             -e DB_PASSWORD=testpass \
-            -e FLYWAY_URL=jdbc:postgresql://postgres:5432/testdb \
+            -e FLYWAY_URL=jdbc:postgresql://localhost:5432/testdb \
             ${{ secrets.DOCKER_USERNAME }}/employee-management-api:latest
           sleep 15
           if curl -f -u admin:admin123 http://localhost:8080/api/v1/employees; then
@@ -460,4 +460,3 @@ jobs:
           echo "Application builds successfully and is ready for performance testing"
           echo "JAR size: $(du -h target/*.jar | cut -f1)"
           echo "Performance test completed"
-
