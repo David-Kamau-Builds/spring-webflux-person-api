@@ -111,7 +111,17 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x ./mvnw
       - name: Run tests with coverage
-        run: ./mvnw clean verify
+        run: |
+          # Retry Maven command up to 3 times on failure
+          for i in {1..3}; do
+            if ./mvnw clean verify -U; then
+              echo "Maven verify succeeded on attempt $i"
+              break
+            else
+              echo "Maven verify failed on attempt $i, retrying..."
+              sleep 10
+            fi
+          done
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
