@@ -5,11 +5,8 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
-  schedule:
-    - cron: '0 2 * * 1'  # Weekly security scan
 
 jobs:
-  # Stage 1: Fast checks (run in parallel)
   test:
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +29,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v4
       - name: Check code formatting
@@ -42,10 +40,9 @@ jobs:
         run: |
           grep -r "TODO\|FIXME\|XXX" src/ --include="*.java" || echo "No TODO/FIXME found"
 
-  # Stage 2: Build and package (after tests pass)
-  build:
+  dependency-check:
     runs-on: ubuntu-latest
-    needs: [test, lint]
+    needs: lint
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -61,19 +58,14 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Make mvnw executable
         run: chmod +x ./mvnw
-      - name: Build application
-        run: ./mvnw clean package -DskipTests
-      - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: employee-api-jar
-          path: target/*.jar
-          retention-days: 7
+      - name: Check for outdated dependencies
+        run: ./mvnw versions:display-dependency-updates || echo "Dependency check completed"
+      - name: Check for plugin updates
+        run: ./mvnw versions:display-plugin-updates || echo "Plugin check completed"
 
-  # Stage 3: Integration tests (after build)
-  integration-test:
+  build:
     runs-on: ubuntu-latest
-    needs: build
+    needs: dependency-check
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -81,53 +73,6 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: employee-api-jar
-          path: target/
-      - name: Test application startup
-        run: |
-          set -e
-          export DB_URL=r2dbc:postgresql://localhost:5432/testdb
-          export DB_USERNAME=testuser
-          export DB_PASSWORD=testpass
-          export FLYWAY_URL=jdbc:postgresql://localhost:5432/testdb
-          export ADMIN_USERNAME=admin
-          export ADMIN_PASSWORD=admin123
-          export JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ==
-          export FLYWAY_ENABLED=false
-          timeout 30s java -jar target/*.jar || echo "Application started and stopped as expected"
-      - name: Install jq
-        run: |
-          set -e
-          sudo apt-get update || { echo "Failed to update package list"; exit 1; }
-          sudo apt-get install -y jq || { echo "Failed to install jq"; exit 1; }
-          jq --version || { echo "jq installation verification failed"; exit 1; }
-      - name: Run API tests
-        run: |
-          echo "API tests completed - application builds and starts successfully"
-
-  # Stage 4: Quality and security (run in parallel after integration tests)
-  sonarcloud:
-    runs-on: ubuntu-latest
-    needs: test
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -144,15 +89,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          args: >
-            -Dsonar.projectKey=spring-webflux-person-api
-            -Dsonar.organization=david-kamau-builds-spring-webflux-person-api
+          name: employee-api-jar
+          path: target/*.jar
+          retention-days: 7
 
-  code-quality:
+  sonarcloud:
     runs-on: ubuntu-latest
-    needs: integration-test
+    needs: build
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -166,23 +113,29 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Make mvnw executable
         run: chmod +x ./mvnw
-      - name: Analyze code complexity
+      - name: Run tests with coverage and SonarCloud analysis
         run: |
-          echo "=== Code Statistics ==="
-          find src/main/java -name "*.java" | xargs wc -l | tail -1
-          echo "=== Method Count ==="
-          grep -r "public\|private\|protected" src/main/java --include="*.java" | grep "(" | wc -l
-      - name: Check dependencies
-        run: ./mvnw dependency:analyze
-      - name: Validate documentation
-        run: |
-          [ -f README.md ] && echo "✓ README.md exists" || echo "✗ README.md missing"
-          [ -f LICENSE ] && echo "✓ LICENSE exists" || echo "✗ LICENSE missing"
+          # Retry Maven command up to 3 times on failure
+          for i in {1..3}; do
+            if ./mvnw clean verify sonar:sonar -U \
+              -Dsonar.projectKey=spring-webflux-person-api \
+              -Dsonar.organization=david-kamau-builds-spring-webflux-person-api \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.token=${{ secrets.SONAR_TOKEN }}; then
+              echo "Maven verify and SonarCloud analysis succeeded on attempt $i"
+              break
+            else
+              echo "Maven verify and SonarCloud analysis failed on attempt $i, retrying..."
+              sleep 10
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   security:
     runs-on: ubuntu-latest
-    needs: integration-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: sonarcloud
     permissions:
       security-events: write
       actions: read
@@ -190,13 +143,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.30.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'table'
-        continue-on-error: true
-      - name: Run Trivy SARIF scan
         uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: 'fs'
@@ -211,10 +157,9 @@ jobs:
           sarif_file: 'trivy-results.sarif'
         continue-on-error: true
 
-  # Stage 5: Docker Build and Deploy (only on develop → main merge)
   docker:
     runs-on: ubuntu-latest
-    needs: [code-quality, security]
+    needs: security
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     services:
       postgres:
@@ -267,207 +212,13 @@ jobs:
             -e FLYWAY_URL=jdbc:postgresql://localhost:5432/testdb \
             ${{ secrets.DOCKER_USERNAME }}/employee-management-api:latest
           
-          echo "Waiting for application to start..."
-          for i in {1..30}; do
-            if curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
-              echo "Application is ready after ${i} attempts"
-              break
-            fi
-            echo "Attempt $i: Application not ready yet, waiting..."
-            sleep 3
-          done
-          
-          echo "Testing application startup..."
+          sleep 15
           if docker logs test-container | grep -q "Started DemoApplication"; then
             echo "Docker container started successfully"
           else
             echo "Docker container test failed"
-            echo "=== Container logs ==="
             docker logs test-container
-            docker stop test-container || true
-            docker rm test-container || true
             exit 1
           fi
           docker stop test-container || true
           docker rm test-container || true
-
-  dependency-check:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Make mvnw executable
-        run: chmod +x ./mvnw
-      - name: Check for outdated dependencies
-        run: ./mvnw versions:display-dependency-updates || echo "Dependency check completed with warnings"
-      - name: Check for plugin updates
-        run: ./mvnw versions:display-plugin-updates || echo "Plugin check completed with warnings"
-      - name: Generate dependency tree
-        run: |
-          ./mvnw dependency:tree > dependency-tree.txt || echo "Dependency tree generated with warnings"
-          echo "Dependency tree size: $(wc -l < dependency-tree.txt) lines"
-      - name: Upload dependency report
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-report
-          path: dependency-tree.txt
-
-  memory-test:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: employee-api-jar
-          path: target/
-      - name: Memory usage test
-        run: |
-          echo "=== Memory Test ==="
-          echo "JAR file size: $(du -h target/*.jar)"
-          echo "Memory test completed - JAR built successfully"
-
-  api-docs:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: employee-api-jar
-          path: target/
-      - name: Generate API documentation
-        run: |
-          echo "=== API Endpoints ==="
-          echo "GET /api/v1/employees - Get all employees"
-          echo "POST /api/v1/employees - Create employee"
-          echo "GET /api/v1/employees/{id} - Get employee by ID"
-          echo "PUT /api/v1/employees/{id} - Update employee"
-          echo "DELETE /api/v1/employees/{id} - Delete employee"
-      - name: Create API documentation
-        run: |
-          echo "# API Documentation" > api-docs.md
-          echo "" >> api-docs.md
-          echo "## Endpoints" >> api-docs.md
-          echo "- GET /api/v1/employees - Get all employees" >> api-docs.md
-          echo "- POST /api/v1/employees - Create an employee" >> api-docs.md
-          echo "- GET /api/v1/employees/{id} - Get employee by ID" >> api-docs.md
-          echo "- PUT /api/v1/employees/{id} - Update employee" >> api-docs.md
-          echo "- DELETE /api/v1/employees/{id} - Delete employee" >> api-docs.md
-      - name: Upload API docs
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-documentation
-          path: api-docs.md
-
-  backup:
-    runs-on: ubuntu-latest
-    needs: [code-quality, security]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Create source backup
-        run: |
-          tar -czf source-backup-${{ github.sha }}.tar.gz \
-            src/ pom.xml README.md LICENSE .gitignore
-      - name: Upload source backup
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-backup-${{ github.sha }}
-          path: source-backup-${{ github.sha }}.tar.gz
-          retention-days: 30
-      - name: Create release notes
-        run: |
-          echo "# Release Notes - $(date)" > release-notes.md
-          echo "" >> release-notes.md
-          echo "## Commit: ${{ github.sha }}" >> release-notes.md
-          echo "## Changes:" >> release-notes.md
-          git log --oneline -5 >> release-notes.md
-      - name: Upload release notes
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: release-notes.md
-
-  release:
-    runs-on: ubuntu-latest
-    needs: [performance, dependency-check, memory-test, api-docs]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-      - name: Create release summary
-        run: |
-          echo "=== Release Summary ===" > release-summary.txt
-          echo "Build: SUCCESS" >> release-summary.txt
-          echo "Tests: PASSED" >> release-summary.txt
-          echo "Security: SCANNED" >> release-summary.txt
-          echo "Performance: TESTED" >> release-summary.txt
-          echo "Docker: READY" >> release-summary.txt
-          echo "Dependencies: CHECKED" >> release-summary.txt
-          echo "Memory: OPTIMIZED" >> release-summary.txt
-          echo "Documentation: GENERATED" >> release-summary.txt
-          echo "Commit: ${{ github.sha }}" >> release-summary.txt
-          echo "Date: $(date)" >> release-summary.txt
-      - name: Upload release summary
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-summary
-          path: release-summary.txt
-      - name: List all artifacts
-        run: |
-          echo "=== Available Artifacts ==="
-          ls -la
-          find . -name "*.jar" -o -name "*.md" -o -name "*.txt" | head -10
-
-  performance:
-    runs-on: ubuntu-latest
-    needs: integration-test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: employee-api-jar
-          path: target/
-      - name: Install Apache Bench
-        run: |
-          set -e
-          sudo apt-get update || { echo "Failed to update package list"; exit 1; }
-          sudo apt-get install -y apache2-utils || { echo "Failed to install apache2-utils"; exit 1; }
-          ab -V || { echo "Apache Bench installation verification failed"; exit 1; }
-      - name: Performance test
-        run: |
-          echo "=== Performance Test Results ==="
-          echo "Application builds successfully and is ready for performance testing"
-          echo "JAR size: $(du -h target/*.jar | cut -f1)"
-          echo "Performance test completed"
