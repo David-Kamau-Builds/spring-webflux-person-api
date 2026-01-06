@@ -81,17 +81,8 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Make mvnw executable
         run: chmod +x ./mvnw
-      - name: Run tests with coverage
-        run: ./mvnw clean verify
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          name: employee-api-jar
-          path: target/*.jar
-          retention-days: 7
+      - name: Build application
+        run: ./mvnw clean compile -DskipTests
 
   sonarcloud:
     runs-on: ubuntu-latest
@@ -132,6 +123,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: employee-api-jar
+          path: target/*.jar
+          retention-days: 7
 
   security:
     runs-on: ubuntu-latest
