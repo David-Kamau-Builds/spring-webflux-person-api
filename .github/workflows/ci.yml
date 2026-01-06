@@ -216,6 +216,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: [code-quality, security]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
       - name: Download JAR artifact
@@ -246,11 +260,11 @@ jobs:
             -e JWT_SECRET=dGVzdCBzZWNyZXQgZm9yIHRlc3RpbmcgcHVycG9zZXMgb25seQ== \
             -e ADMIN_USERNAME=admin \
             -e ADMIN_PASSWORD=admin123 \
-            -e FLYWAY_ENABLED=false \
-            -e DB_URL=r2dbc:h2:mem:///testdb \
-            -e DB_USERNAME=sa \
-            -e DB_PASSWORD= \
-            -e FLYWAY_URL=jdbc:h2:mem:testdb \
+            -e FLYWAY_ENABLED=true \
+            -e DB_URL=r2dbc:postgresql://localhost:5432/testdb \
+            -e DB_USERNAME=testuser \
+            -e DB_PASSWORD=testpass \
+            -e FLYWAY_URL=jdbc:postgresql://localhost:5432/testdb \
             ${{ secrets.DOCKER_USERNAME }}/employee-management-api:latest
           
           echo "Waiting for application to start..."
