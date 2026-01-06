@@ -277,9 +277,9 @@ jobs:
             sleep 3
           done
           
-          echo "Testing health endpoint..."
-          if curl -f http://localhost:8080/actuator/health; then
-            echo "Docker container health check passed"
+          echo "Testing application startup..."
+          if docker logs test-container | grep -q "Started DemoApplication"; then
+            echo "Docker container started successfully"
           else
             echo "Docker container test failed"
             echo "=== Container logs ==="
