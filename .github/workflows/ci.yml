@@ -110,27 +110,25 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Make mvnw executable
         run: chmod +x ./mvnw
-      - name: Run tests with coverage
+      - name: Run tests with coverage and SonarCloud analysis
         run: |
           # Retry Maven command up to 3 times on failure
           for i in {1..3}; do
-            if ./mvnw clean verify -U; then
-              echo "Maven verify succeeded on attempt $i"
+            if ./mvnw clean verify sonar:sonar -U \
+              -Dsonar.projectKey=spring-webflux-person-api \
+              -Dsonar.organization=david-kamau-builds-spring-webflux-person-api \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.token=${{ secrets.SONAR_TOKEN }}; then
+              echo "Maven verify and SonarCloud analysis succeeded on attempt $i"
               break
             else
-              echo "Maven verify failed on attempt $i, retrying..."
+              echo "Maven verify and SonarCloud analysis failed on attempt $i, retrying..."
               sleep 10
             fi
           done
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=spring-webflux-person-api
-            -Dsonar.organization=david-kamau-builds-spring-webflux-person-api
 
   security:
     runs-on: ubuntu-latest
