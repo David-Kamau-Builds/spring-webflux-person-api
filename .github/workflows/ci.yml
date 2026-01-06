@@ -139,7 +139,7 @@ jobs:
       - name: Run tests with coverage
         run: ./mvnw clean verify
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -147,7 +147,6 @@ jobs:
           args: >
             -Dsonar.projectKey=spring-webflux-person-api
             -Dsonar.organization=david-kamau-builds-spring-webflux-person-api
-            -Dsonar.branch.name=${{ github.ref_name }}
 
   code-quality:
     runs-on: ubuntu-latest
@@ -206,7 +205,7 @@ jobs:
           output: 'trivy-results.sarif'
         continue-on-error: true
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
