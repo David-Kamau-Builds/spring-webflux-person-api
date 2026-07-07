@@ -78,13 +78,10 @@ class JwtUtilTest {
 
     @Test
     void isTokenValid_ExpiredToken_ReturnsFalse() {
-        // Create a JwtUtil with 1ms expiration so the token expires immediately
-        JwtUtil shortLivedJwtUtil = new JwtUtil(testSecret, 1L);
-        String token = shortLivedJwtUtil.generateToken("testuser");
+        // Negative expiration places the expiry date 1 second in the past — token is invalid immediately
+        JwtUtil expiredJwtUtil = new JwtUtil(testSecret, -1000L);
+        String token = expiredJwtUtil.generateToken("testuser");
 
-        // Sleep briefly to ensure expiration
-        try { Thread.sleep(10); } catch (InterruptedException ignored) {}
-
-        assertFalse(shortLivedJwtUtil.isTokenValid(token));
+        assertFalse(expiredJwtUtil.isTokenValid(token));
     }
 }

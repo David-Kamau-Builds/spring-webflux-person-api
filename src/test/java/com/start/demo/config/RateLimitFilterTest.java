@@ -21,7 +21,8 @@ class RateLimitFilterTest {
 
     @BeforeEach
     void setUp() {
-        rateLimitFilter = new RateLimitFilter();
+        // Use a small limit (3 req / 1 min) for the default filter in basic tests
+        rateLimitFilter = new RateLimitFilter(3, java.time.Duration.ofMinutes(1));
         chain = mock(WebFilterChain.class);
         when(chain.filter(any())).thenReturn(Mono.empty());
     }
@@ -56,12 +57,12 @@ class RateLimitFilterTest {
 
     @Test
     void filter_WhenRateLimitExceeded_Returns429() {
-        // Use a unique IP to isolate this test
+        // Use a unique IP and a limit of 2 to avoid making 100 requests
         String testIp = "10.0.0.99";
-        RateLimitFilter isolatedFilter = new RateLimitFilter();
+        RateLimitFilter isolatedFilter = new RateLimitFilter(2, java.time.Duration.ofMinutes(1));
 
-        // Make 101 requests to exceed the 100 req/min limit
-        for (int i = 0; i < 100; i++) {
+        // Make 2 requests to reach the limit
+        for (int i = 0; i < 2; i++) {
             MockServerHttpRequest req = MockServerHttpRequest
                     .get("/api/v1/employees")
                     .remoteAddress(new java.net.InetSocketAddress(testIp, 9000))
@@ -86,12 +87,12 @@ class RateLimitFilterTest {
 
     @Test
     void filter_DifferentClients_HaveIndependentLimits() {
-        RateLimitFilter isolatedFilter = new RateLimitFilter();
+        RateLimitFilter isolatedFilter = new RateLimitFilter(2, java.time.Duration.ofMinutes(1));
         WebFilterChain passChain = mock(WebFilterChain.class);
         when(passChain.filter(any())).thenReturn(Mono.empty());
 
-        // Exhaust limit for client A
-        for (int i = 0; i < 101; i++) {
+        // Exhaust limit for client A (3 requests exceeds limit of 2)
+        for (int i = 0; i < 3; i++) {
             MockServerHttpRequest req = MockServerHttpRequest
                     .get("/api/v1/employees")
                     .remoteAddress(new java.net.InetSocketAddress("10.0.0.1", 9000))
@@ -110,6 +111,44 @@ class RateLimitFilterTest {
                 .verifyComplete();
 
         assertThat(clientBExchange.getResponse().getStatusCode())
+                .isNotEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @Test
+    void filter_AfterWindowExpires_CounterResetsAndRequestAllowed() {
+        // Use a 1ms window so it expires almost immediately
+        RateLimitFilter shortWindowFilter = new RateLimitFilter(1, java.time.Duration.ofMillis(1));
+        WebFilterChain passChain = mock(WebFilterChain.class);
+        when(passChain.filter(any())).thenReturn(Mono.empty());
+
+        String testIp = "10.1.1.1";
+        long start = System.currentTimeMillis();
+
+        // Exhaust the limit (1 request allowed, 2nd gets 429)
+        for (int i = 0; i < 2; i++) {
+            MockServerHttpRequest req = MockServerHttpRequest
+                    .get("/api/v1/employees")
+                    .remoteAddress(new java.net.InetSocketAddress(testIp, 9000))
+                    .build();
+            shortWindowFilter.filter(MockServerWebExchange.from(req), passChain).block();
+        }
+
+        // Busy-wait until at least 1ms has elapsed so the window expires
+        while (System.currentTimeMillis() - start < 5) {
+            // spin — avoids Thread.sleep (SonarCloud S2925)
+        }
+
+        // After the window resets, the next request should be allowed again
+        MockServerHttpRequest resetRequest = MockServerHttpRequest
+                .get("/api/v1/employees")
+                .remoteAddress(new java.net.InetSocketAddress(testIp, 9000))
+                .build();
+        MockServerWebExchange resetExchange = MockServerWebExchange.from(resetRequest);
+
+        StepVerifier.create(shortWindowFilter.filter(resetExchange, passChain))
+                .verifyComplete();
+
+        assertThat(resetExchange.getResponse().getStatusCode())
                 .isNotEqualTo(HttpStatus.TOO_MANY_REQUESTS);
     }
 }
