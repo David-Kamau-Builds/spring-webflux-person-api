@@ -1,5 +1,6 @@
 package com.start.demo.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -20,6 +21,7 @@ public class RateLimitFilter implements WebFilter {
     private final Duration window;
 
     // Production constructor: 100 requests per minute
+    @Autowired
     public RateLimitFilter() {
         this(100, Duration.ofMinutes(1));
     }

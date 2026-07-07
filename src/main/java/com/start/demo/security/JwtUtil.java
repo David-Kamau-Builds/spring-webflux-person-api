@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
+import java.time.Instant;
 
 @Component
 public class JwtUtil {
@@ -16,7 +17,7 @@ public class JwtUtil {
     private final long expiration;
     
     public JwtUtil(@Value("${jwt.secret}") String secret, 
-                   @Value("${jwt.expiration}") long expiration) {
+    @Value("${jwt.expiration}") long expiration) {
         this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
         this.expiration = expiration;
     }
@@ -24,8 +25,8 @@ public class JwtUtil {
     public String generateToken(String username) {
         return Jwts.builder()
                 .subject(username)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusMillis(expiration)))
                 .signWith(key)
                 .compact();
     }
@@ -36,7 +37,7 @@ public class JwtUtil {
     
     public boolean isTokenValid(String token) {
         try {
-            return !extractClaims(token).getExpiration().before(new Date());
+            return !extractClaims(token).getExpiration().toInstant().isBefore(Instant.now());
         } catch (Exception e) {
             return false;
         }

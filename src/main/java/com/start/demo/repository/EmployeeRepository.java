@@ -1,6 +1,5 @@
 package com.start.demo.repository;
 
-import com.start.demo.dto.EmployeeResponse;
 import com.start.demo.model.Employee;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
