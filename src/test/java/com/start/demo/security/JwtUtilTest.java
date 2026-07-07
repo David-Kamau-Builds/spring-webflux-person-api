@@ -75,4 +75,16 @@ class JwtUtilTest {
 
         assertThrows(Exception.class, () -> jwtUtil.extractUsername(invalidToken));
     }
+
+    @Test
+    void isTokenValid_ExpiredToken_ReturnsFalse() {
+        // Create a JwtUtil with 1ms expiration so the token expires immediately
+        JwtUtil shortLivedJwtUtil = new JwtUtil(testSecret, 1L);
+        String token = shortLivedJwtUtil.generateToken("testuser");
+
+        // Sleep briefly to ensure expiration
+        try { Thread.sleep(10); } catch (InterruptedException ignored) {}
+
+        assertFalse(shortLivedJwtUtil.isTokenValid(token));
+    }
 }
