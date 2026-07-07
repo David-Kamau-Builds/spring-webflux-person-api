@@ -155,7 +155,7 @@ jobs:
       - name: Pre-populate Maven cache for Trivy
         run: ./mvnw dependency:resolve dependency:resolve-plugins -q --batch-mode || true
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
