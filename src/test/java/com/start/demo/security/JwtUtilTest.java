@@ -75,4 +75,13 @@ class JwtUtilTest {
 
         assertThrows(Exception.class, () -> jwtUtil.extractUsername(invalidToken));
     }
+
+    @Test
+    void isTokenValid_ExpiredToken_ReturnsFalse() {
+        // Negative expiration places the expiry date 1 second in the past — token is invalid immediately
+        JwtUtil expiredJwtUtil = new JwtUtil(testSecret, -1000L);
+        String token = expiredJwtUtil.generateToken("testuser");
+
+        assertFalse(expiredJwtUtil.isTokenValid(token));
+    }
 }

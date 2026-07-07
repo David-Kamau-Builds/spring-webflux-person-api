@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class DepartmentControllerPureTest {
+class DepartmentControllerPureTest {
 
     @InjectMocks
     private DepartmentController departmentController;
@@ -28,12 +28,12 @@ public class DepartmentControllerPureTest {
     private DepartmentService departmentService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void getAllDepartments() {
+    void getAllDepartments() {
         Department department1 = new Department(UUID.randomUUID(), "Engineering", "Engineering department", null);
         Department department2 = new Department(UUID.randomUUID(), "HR", "HR department", null);
         List<Department> departments = Arrays.asList(department1, department2);
@@ -48,7 +48,7 @@ public class DepartmentControllerPureTest {
     }
 
     @Test
-    public void getDepartmentById() {
+    void getDepartmentById() {
         UUID departmentId = UUID.randomUUID();
         Department department = new Department(departmentId, "Engineering", "Engineering department", null);
 
@@ -62,7 +62,7 @@ public class DepartmentControllerPureTest {
     }
 
     @Test
-    public void createDepartment() {
+    void createDepartment() {
         Department department = new Department(UUID.randomUUID(), "Engineering", "Engineering department", null);
 
         when(departmentService.createDepartment(any(Department.class))).thenReturn(Mono.just(department));
@@ -75,7 +75,7 @@ public class DepartmentControllerPureTest {
     }
 
     @Test
-    public void updateDepartment() {
+    void updateDepartment() {
         UUID departmentId = UUID.randomUUID();
         Department department = new Department(departmentId, "Engineering", "Engineering department", null);
 
@@ -89,7 +89,7 @@ public class DepartmentControllerPureTest {
     }
 
     @Test
-    public void deleteDepartment() {
+    void deleteDepartment() {
         UUID departmentId = UUID.randomUUID();
 
         when(departmentService.deleteDepartment(departmentId)).thenReturn(Mono.empty());

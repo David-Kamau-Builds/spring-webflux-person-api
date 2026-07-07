@@ -1,5 +1,6 @@
 package com.start.demo.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -16,9 +17,21 @@ import java.util.concurrent.atomic.AtomicLong;
 public class RateLimitFilter implements WebFilter {
     
     private final ConcurrentMap<String, RequestCounter> requests = new ConcurrentHashMap<>();
-    private final int maxRequests = 100; // per minute
-    private static final Duration window = Duration.ofMinutes(1);
-    
+    private final int maxRequests;
+    private final Duration window;
+
+    // Production constructor: 100 requests per minute
+    @Autowired
+    public RateLimitFilter() {
+        this(100, Duration.ofMinutes(1));
+    }
+
+    // Package-private constructor for testing with custom limits
+    RateLimitFilter(int maxRequests, Duration window) {
+        this.maxRequests = maxRequests;
+        this.window = window;
+    }
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String clientId = getClientId(exchange);
@@ -41,7 +54,7 @@ public class RateLimitFilter implements WebFilter {
         long now = System.currentTimeMillis();
         RequestCounter counter = requests.computeIfAbsent(clientId, k -> new RequestCounter());
         
-        // Clean old entries
+        // Reset counter when time window has expired
         if (now - counter.windowStart.get() > window.toMillis()) {
             counter.count.set(0);
             counter.windowStart.set(now);
