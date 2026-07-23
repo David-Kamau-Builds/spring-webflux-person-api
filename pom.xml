@@ -23,7 +23,7 @@
 		<spring-security.version>6.5.11</spring-security.version>
 		<spring-framework.version>6.2.18</spring-framework.version>
 		<logback.version>1.5.35</logback.version>
-		<postgresql.version>42.7.11</postgresql.version>
+		<postgresql.version>42.7.12</postgresql.version>
 		<sonar.projectKey>spring-webflux-person-api</sonar.projectKey>
 		<sonar.organization>david-kamau-builds-spring-webflux-person-api</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
